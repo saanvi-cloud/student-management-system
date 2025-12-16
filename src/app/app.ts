@@ -4,10 +4,13 @@ import { Navbar } from './components/navbar/navbar';
 import { Dashboard } from './components/dashboard/dashboard';
 import { Students } from './components/students/students';
 import { AddStudent } from './components/add-student/add-student';
+import { Courses } from './components/courses/courses';
+import { Grades } from './components/grades/grades';
+import { Attendance } from './components/attendance/attendance';
 
 @Component({
   selector: 'app-root',
-  imports: [Header, Navbar, Dashboard, Students, AddStudent],
+  imports: [Header, Navbar, Dashboard, Students, AddStudent, Courses, Grades, Attendance],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
