@@ -1,14 +1,128 @@
-<div class="w-full flex justify-between">
-  <div class="text-blue-700 font-bold text-3xl flex">
-    <i class="fas fa-tachometer-alt mr-2"></i>
-    <h1>Dashboard</h1>
-  </div>
-  <div class="flex justify-end flex-1"></div>
-    <select class="ml-auto">
+<div class="p-10">
+  <!-- Content -->
+  <div class="w-full flex">
+    <div class="text-blue-700/80 font-bold text-3xl flex">
+      <i class="fas fa-tachometer-alt mr-2"></i>
+      <h1>Dashboard Overview</h1>
+    </div>
+    <select class="ml-auto border border-slate-300 rounded-md p-3">
         <option>This month</option>
         <option>Last month</option>
         <option>This semester</option>
     </select>
   </div>
+  <hr class="w-full text-slate-300 shadow-md border-[0.5px] my-6">
+  <!-- Notifications -->
+  <div class="flex justify-between">
+    <!-- Recent Activities -->
+    <div class="w-[450px] bg-indigo-400/15 p-5 border rounded-md border-indigo-400/15">
+      <h3 class="text-[20px] font-bold mb-7">Recent Activities</h3>
+      <div class="flex py-3">
+        <i class="fa-solid fa-user-plus text-[16px] text-green-400 mr-2"></i>
+        <h4 class="text-[16px]">New student added: John Doe</h4>
+      </div>
+      <hr class="text-slate-300">
+      <div class="flex py-3">
+        <i class="fa-solid fa-pen-to-square text-[16px] text-orange-400 mr-2"></i>
+        <h4 class="text-[16px]">Student record updated: Jane Smith</h4>
+      </div>
+      <hr class="text-slate-300">
+      <div class="flex py-3">
+        <i class="fa-solid fa-chart-line text-[16px] text-blue-600 mr-2"></i>
+        <h4 class="text-[16px]">Monthly report generated</h4>
+      </div>
+    </div>
+    <!-- Upcoming Events -->
+    <div class="w-[450px] bg-green-400/15 p-5 border rounded-md border-green-400/15">
+      <h3 class="text-[20px] font-bold mb-7">Upcoming Events</h3>
+      <div class="flex py-3">
+        <h4 class="text-[16px]"><span class="font-bold">Midterm Exams:</span> Next week</h4>
+      </div>
+      <hr class="text-slate-300">
+      <div class="flex py-3">
+        <h4 class="text-[16px]"><span class="font-bold">Parent-Teacher Meeting:</span> March 25</h4>
+      </div>
+      <hr class="text-slate-300">
+      <div class="flex py-3">
+        <h4 class="text-[16px]"><span class="font-bold">Semester Break:</span> April 10-20</h4>
+      </div>
+    </div>
+  </div>
+  <!-- Top Performing Students -->
+  <div class="w-full mt-20">
+    <h3 class="text-[22px] font-bold mb-3">Top Performing Students</h3>
+    <table class="w-full">
+
+      <thead class="bg-blue-600 text-white text-[18px]">
+        <th class="text-left py-4 pl-4">ID</th>
+        <th class="text-left py-4">Name</th>
+        <th class="text-left py-4">Course</th>
+        <th class="text-left py-4">Grade</th>
+        <th class="text-left py-4 pr-4">Status</th>
+      </thead>
+
+      <tbody class="text-[16px]">
+        <tr class="py-40 border-b border-slate-300">
+          <td class="py-4 pl-4">4</td>
+          <td class="py-4 pl-8">Emily Williams</td>
+          <td class="py-4 pl-8">Medicine</td>
+          <td class="py-4 pl-8">95.0</td>
+          <td>
+            <button class="bg-green-400/20 text-green-950/80 rounded-[15px] text-[14px] p-[6px] mx-1 flex justify-center">
+              Graduated
+            </button>
+          </td>
+        </tr>
+
+        <tr class=" border-b border-slate-300">
+          <td class="py-4 px-4">2</td>
+          <td class="py-4 pl-8">Jane Smith</td>
+          <td class="py-4 pl-8">Business Administration</td>
+          <td class="py-4 pl-8">92.0</td>
+          <td>
+            <button class="bg-green-400/20 text-green-950/80 rounded-[15px] text-[14px] p-[6px] mx-1 flex justify-center">
+              Active
+            </button>
+          </td>
+        </tr>
+        
+        <tr class=" border-b border-slate-300">
+          <td class="py-4 px-4">5</td>
+          <td class="py-4 pl-8">Michael Brown</td>
+          <td class="py-4 pl-8">Arts</td>
+          <td class="py-4 pl-8">88.5</td>
+          <td>
+            <button class="bg-red-400/20 text-red-950/80 rounded-[15px] text-[14px] p-[6px] mx-1 flex justify-center">
+              Inactive
+            </button>
+          </td>
+        </tr>
+        
+        <tr class=" border-b border-slate-300">
+          <td class="py-4 px-4">1</td>
+          <td class="py-4 pl-8">John Doe</td>
+          <td class="py-4 pl-8">Computer Science</td>
+          <td class="py-4 pl-8">85.5</td>
+          <td>
+            <button class="bg-green-400/20 text-green-950/80 rounded-[15px] text-[14px] p-[6px] mx-1 flex justify-center">
+              Active
+            </button>
+          </td>
+        </tr>
+        
+        <tr class=" border-b border-slate-300">
+          <td class="py-4 px-4">3</td>
+          <td class="py-4 pl-8">Robert Johnson</td>
+          <td class="py-4 pl-8">Engineering</td>
+          <td class="py-4 pl-8">78.5</td>
+          <td>
+            <button class="bg-green-400/20 text-green-950/80 rounded-[15px] text-[14px] p-[6px] mx-1 flex justify-center">
+              Active
+            </button>
+          </td>
+        </tr>
+        
+      </tbody>
+    </table>
+  </div>
 </div>
-<hr class="w-full text-slate-300 shadow-md border-[1px]">

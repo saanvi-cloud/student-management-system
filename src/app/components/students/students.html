@@ -1,1 +1,163 @@
-<p>students works!</p>
+<div class="p-10">
+    <!-- Student Records -->
+  <div class="flex justify-between mt-12 mb-3">
+    <div class="flex">
+      <i class="fa-solid fa-users mr-2 text-blue-700/80 font-bold text-3xl"></i>
+      <h1 class="text-blue-700/80 font-bold text-3xl">Student Records</h1>
+    </div>
+    <form action="/search" method="get">
+      <input type="search" id="site-search" name="q" placeholder="Search students..." class="w-[260px]"/>
+      <button class="bg-blue-700/80 text-white text-[14px] p-3 border rounded-md"><i class="fa-solid fa-rotate text-white text-[14px] p-[1px] mr-2 border border-blue-700/10 rounded-md"></i>Refresh</button>
+    </form>
+  </div>
+
+  <table class="w-full">
+    <thead class="bg-blue-600 text-white text-[18px]">
+      <th class="text-left py-4 pl-2 px-2">ID</th>
+      <th class="text-left py-4 px-2">Name</th>
+      <th class="text-left py-4 px-2">Email</th>
+      <th class="text-left py-4 px-2">Course</th>
+      <th class="text-left py-4 px-2">Grade</th>
+      <th class="text-left py-4 px-2">Status</th>
+      <th class="text-left py-4 pr-2 px-2">Actions</th>
+    </thead>
+
+    <tbody class="text-[15px]">
+      <tr class="py-40 border-b border-slate-300">
+        <td class="py-4 pl-4">4</td>
+        <td class="py-4 pl-8">Emily Williams</td>
+        <td class="py-4 pl-8">john.doe@example.com</td>
+        <td class="py-4 pl-8">Medicine</td>
+        <td class="py-4 pl-8">95.0</td>
+        <td>
+          <div class="bg-green-400/20 w-auto text-green-950/80 rounded-[15px] text-[14px] p-[5px] flex justify-center">
+            Graduated
+          </div>
+        </td>
+        <td class="flex items-center justify-center gap-2 px-4 py-4">
+          <button class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-eye"></i>
+            View
+          </button>
+          <button class="bg-orange-400 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-pen-to-square"></i>
+            Edit
+          </button>
+          <button class="bg-red-600/80 w-[90px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-trash"></i>
+            Delete
+          </button>
+        </td>
+      </tr>
+
+      <tr class=" border-b border-slate-300">
+        <td class="py-4 px-4">2</td>
+        <td class="py-4 pl-8">Jane Smith</td>
+        <td class="py-4 pl-8">jane.smith@example.com</td>
+        <td class="py-4 pl-8">Business Administration</td>
+        <td class="py-4 pl-8">92.0</td>
+        <td>
+          <div class="bg-green-400/20 w-auto text-green-950/80  rounded-[15px] text-[14px] p-[5px] flex justify-center">
+            Active
+          </div>
+        </td>
+        <td class="flex items-center justify-center gap-2 px-4 py-4">
+          <button class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-eye"></i>
+            View
+          </button>
+          <button class="bg-orange-400 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-pen-to-square"></i>
+            Edit
+          </button>
+          <button class="bg-red-600/80 w-[90px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-trash"></i>
+            Delete
+          </button>
+        </td>
+      </tr>
+      
+      <tr class=" border-b border-slate-300">
+        <td class="py-4 px-4">5</td>
+        <td class="py-4 pl-8">Michael Brown</td>
+        <td class="py-4 pl-8">robert.j@example.com</td>
+        <td class="py-4 pl-8">Arts</td>
+        <td class="py-4 pl-8">88.5</td>
+        <td>
+          <div class="bg-red-400/20 w-auto text-red-950/80 rounded-[15px] text-[14px] p-[5px] flex justify-center">
+            Inactive
+          </div>
+        </td>
+        <td class="flex items-center justify-center gap-2 px-4 py-4">
+          <button class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-eye"></i>
+            View
+          </button>
+          <button class="bg-orange-400 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-pen-to-square"></i>
+            Edit
+          </button>
+          <button class="bg-red-600/80 w-[90px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-trash"></i>
+            Delete
+          </button>
+        </td>
+      </tr>
+      
+      <tr class=" border-b border-slate-300">
+        <td class="py-4 px-4">1</td>
+        <td class="py-4 pl-8">John Doe</td>
+        <td class="py-4 pl-8">emily.w@example.com</td>
+        <td class="py-4 pl-8">Computer Science</td>
+        <td class="py-4 pl-8">85.5</td>
+        <td>
+          <div class="bg-green-400/20 w-auto text-green-950/80 rounded-[15px] text-[14px] p-[5px] flex justify-center">
+            Active
+          </div>
+        </td>
+        <td class="flex items-center justify-center gap-2 px-4 py-4">
+          <button class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-eye"></i>
+            View
+          </button>
+          <button class="bg-orange-400 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-pen-to-square"></i>
+            Edit
+          </button>
+          <button class="bg-red-600/80 w-[90px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-trash"></i>
+            Delete
+          </button>
+        </td>
+      </tr>
+      
+      <tr class=" border-b border-slate-300">
+        <td class="py-4 px-4">3</td>
+        <td class="py-4 pl-8">Robert Johnson</td>
+        <td class="py-4 pl-8">michael.b@example.com</td>
+        <td class="py-4 pl-8">Engineering</td>
+        <td class="py-4 pl-8">78.5</td>
+        <td>
+          <div class="bg-green-400/20 w-auto text-green-950/80 rounded-[15px] text-[14px] p-[5px] flex justify-center">
+            Active
+          </div>
+        </td>
+        <td class="flex items-center justify-center gap-2 px-4 py-4">
+          <button class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-eye"></i>
+            View
+          </button>
+          <button class="bg-orange-400 w-[80px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-pen-to-square"></i>
+            Edit
+          </button>
+          <button class="bg-red-600/80 w-[90px] p-2 text-white border rounded-md cursor-pointer">
+            <i class="fa-solid fa-trash"></i>
+            Delete
+          </button>
+        </td>
+      </tr>
+      
+    </tbody>
+  </table>
+</div>
