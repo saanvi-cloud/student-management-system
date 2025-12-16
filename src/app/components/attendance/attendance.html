@@ -1,12 +1,12 @@
 <div class="p-10">
   <div class="w-full flex">
     <div class="text-blue-700/80 font-bold text-3xl flex">
-      <i class="fa-solid fa-book mr-2"></i>
-      <h1>Grades Management</h1>
+      <i class="fa-solid fa-calendar-check mr-2"></i>
+      <h1>Attendance Tracking</h1>
     </div>
     <button class="text-white bg-blue-600 ml-auto border border-slate-300 rounded-md p-3 cursor-pointer">
-      <i class="fa-solid fa-upload"></i>
-      Bulk grade update
+      <i class="fa-solid fa-circle-check"></i>
+      Mark today's attendance
     </button>
   </div>
   <hr class="w-full text-slate-300 shadow-md border-[0.5px] my-6">
@@ -14,6 +14,11 @@
   <form class="w-full">
 
     <div class="w-full gap-8 mb-7 flex justify-between">
+      <div class="w-full">
+        <h4 class="p-2">Select Date</h4>
+        <input type="date" class="p-2 w-full border border-slate-300 rounded-md"/>
+      </div>
+
       <div class="w-full">
         <h4 class="p-2">Filter by course</h4>
         <select class="p-2 w-full border border-slate-300 rounded-md">
@@ -25,17 +30,6 @@
           <option>Arts</option>
         </select>
       </div>
-      <div class="w-full">
-        <h4 class="p-2">Grade range</h4>
-        <select class="p-2 w-full border border-slate-300 rounded-md">
-          <option>All Grades</option>
-          <option>90-100 (A)</option>
-          <option>80-89 (B)</option>
-          <option>70-79 (C)</option>
-          <option>60-69 (D)</option>
-          <option>Below 60 (F)</option>
-        </select>
-      </div>
     </div>
   </form>
 
@@ -44,39 +38,28 @@
       <th class="text-left py-4 pl-2 px-2">Student ID</th>
       <th class="text-left py-4 px-2">Name</th>
       <th class="text-left py-4 px-2">Course</th>
-      <th class="text-left py-4 px-2">Current Grade</th>
-      <th class="text-left py-4 px-2">Letter Grade</th>
-      <th class="text-left py-4 px-2">Performance</th>
-      <th class="text-left py-4 pr-2 px-2">Actions</th>
+      <th class="text-left py-4 px-2">Attendance Rate</th>
+      <th class="text-left py-4 px-2">Total Classes</th>
+      <th class="text-left py-4 px-2">Present</th>
+      <th class="text-left py-4 px-2">Absent</th>
+      <th class="text-left py-4 pr-2 px-2">Status</th>
     </thead>
 
     <tbody class="text-[15px]"></tbody>
   </table>
 
-  <div class="bg-slate-300/20 p-5 border border-slate-300 rounded-md">
-    <h3 class="text-xl font-bold pb-5">Grade Distribution</h3>
+  <div class="bg-sky-300/10 p-5 border border-sky-300/10 rounded-md">
+    <h3 class="text-xl font-bold pb-5">Attendance Summary</h3>
     <div class="flex justify-between">
-      <div class="bg-white w-[430px] border border-white rounded-md">
-        <p class="text-green-500 font-bold p-3 flex justify-center">A (90-100)</p>
-        <h2 class="text-3xl font-bold p-3 flex justify-center">0</h2>
-        <p class="text-slate-500 p-3 flex justify-center">students</p>
+      <div class="bg-white w-[430px] border border-white rounded-md flex items-center justify-center flex-col">
+        <i class="fa-solid fa-user-check text-green-500 text-4xl py-3"></i>
+        <p class="font-bold pb-3">Excellent (&gt;90%)</p>
+        <h2 class="text-3xl font-bold p-3">0</h2>
       </div>
-      <div class="bg-white w-[430px] border border-white rounded-md">
-        <p class="text-blue-500 font-bold p-3 flex justify-center">B (80-89)</p>
-        <h2 class="text-3xl font-bold p-3 flex justify-center">0</h2>
-        <p class="text-slate-500 p-3 flex justify-center">students</p>
-      </div>
-    </div>
-    <div class="flex justify-between py-4">
-      <div class="bg-white w-[430px] border border-white rounded-md">
-        <p class="text-amber-500 font-bold p-3 flex justify-center">C (70-79)</p>
-        <h2 class="text-3xl font-bold p-3 flex justify-center">0</h2>
-        <p class="text-slate-500 p-3 flex justify-center">students</p>
-      </div>
-      <div class="bg-white w-[430px] border border-white rounded-md">
-        <p class="text-red-500 font-bold p-3 flex justify-center">D & F (Below 70)</p>
-        <h2 class="text-3xl font-bold p-3 flex justify-center">0</h2>
-        <p class="text-slate-500 p-3 flex justify-center">students</p>
+      <div class="bg-white w-[430px] border border-white rounded-md flex items-center justify-center flex-col">
+        <i class="fa-solid fa-user-clock text-amber-500 text-4xl p-3"></i>
+        <p class="font-bold p-3">Needs Attention (&lt;75%) </p>
+        <h2 class="text-3xl font-bold p-3">0</h2>
       </div>
     </div>
   </div>

@@ -7,10 +7,11 @@ import { AddStudent } from './components/add-student/add-student';
 import { Courses } from './components/courses/courses';
 import { Grades } from './components/grades/grades';
 import { Attendance } from './components/attendance/attendance';
+import { System } from './components/system/system';
 
 @Component({
   selector: 'app-root',
-  imports: [Header, Navbar, Dashboard, Students, AddStudent, Courses, Grades, Attendance],
+  imports: [Header, Navbar, Dashboard, Students, AddStudent, Courses, Grades, Attendance, System],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
