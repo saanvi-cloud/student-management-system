@@ -8,10 +8,11 @@ import { Courses } from './components/courses/courses';
 import { Grades } from './components/grades/grades';
 import { Attendance } from './components/attendance/attendance';
 import { System } from './components/system/system';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [Header, Navbar, Dashboard, Students, AddStudent, Courses, Grades, Attendance, System],
+  imports: [Header, Navbar, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
