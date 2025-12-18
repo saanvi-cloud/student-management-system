@@ -16,5 +16,5 @@ export const routes: Routes = [
   {path: 'grades', component: Grades}, 
   {path: 'attendance', component: Attendance}, 
   {path: 'system', component: System}, 
-  {path: '**', redirectTo: 'dashboard'}
+  {path: '**', redirectTo: 'dashboard', pathMatch:'full'}
 ];

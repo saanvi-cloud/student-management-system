@@ -1,10 +1,11 @@
 <app-header></app-header>
-<div class="bg-slate-300/20 flex">
-  <div class="w-[280px] h-[440px] bg-white mt-12 border-white rounded-2xl ml-60 p-5 shadow-md">
-    <app-navbar></app-navbar>
-  </div>
 
-  <div class="w-[1000px] bg-white mt-12 border-white rounded-2xl ml-10">
+<div class="bg-slate-300/20 flex min-h-screen">
+  <aside class="w-[280px] bg-white mt-12 rounded-2xl ml-60 p-5 shadow-md">
+    <app-navbar></app-navbar>
+  </aside>
+
+  <main class="bg-white mt-12 mx-6 p-2 rounded-2xl flex-1 overflow-auto">
     <router-outlet></router-outlet>
-  </div>
+  </main>
 </div>

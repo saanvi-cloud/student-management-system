@@ -3,8 +3,9 @@
     
     <li class="gap-[12px]">
       <a 
-      routerLink="/dashboard" routerLinkActive="bg-slate-300/20"
-      class="flex items-center px-2 py-4 rounded-md hover:bg-slate-300/20 cursor-pointer hover:w-[250px]">
+      routerLink="/dashboard" routerLinkActive="bg-blue-700/90 text-white"
+      [routerLinkActiveOptions]="{ exact: true }" 
+      class="flex items-center px-2 py-4 rounded-md hover:bg-slate-300/20 hover:text-black cursor-pointer hover:w-[250px]">
         <i class="fas fa-tachometer-alt text-[20px] mr-2"></i>
         Dashboard
       </a>
