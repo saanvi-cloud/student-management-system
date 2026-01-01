@@ -7,10 +7,12 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .table-header {
   @apply bg-blue-600 text-white text-[18px];
+  text-align: center;
 }
 
 .table-cell {
   @apply py-4 px-4;
+  text-align: center;
 }
 
 .action-btn {

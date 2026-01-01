@@ -11,7 +11,7 @@
     </button>
   </div>
   <hr class="w-full text-slate-300 shadow-md border-[0.5px] my-6">
-  <table class="w-full">
+  <table class="w-full my-10">
     <thead class="table-header">
       <th class="table-cell">Course Code</th>
       <th class="table-cell">Course Name</th>
@@ -22,48 +22,12 @@
     </thead>
 
     <tbody class="text-[15px]">
-      <tr class="py-40 border-b border-slate-300">
-        <td class="py-4 pl-8">4CS101</td>
-        <td class="py-4 pl-12">Introduction to Programming</td>
-        <td class="py-4 pl-8">Dr. Alan Smith</td>
-        <td class="py-4 pl-14">45</td>
-        <td class="py-4 pl-8">Mon/Wed 10:00 AM</td>
-        <td class="flex items-center justify-center gap-2 px-4 py-4">
-          <button class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md cursor-pointer">
-            <i class="fa-solid fa-eye"></i>
-            View
-          </button>
-          <button class="bg-orange-400 w-[80px] p-2 text-white border rounded-md cursor-pointer">
-            <i class="fa-solid fa-pen-to-square"></i>
-            Edit
-          </button>
-        </td>
-      </tr>
-
-      <tr class="py-40 border-b border-slate-300">
-        <td class="py-4 pl-8">BUS202</td>
-        <td class="py-4 pl-12">Business Management</td>
-        <td class="py-4 pl-8">Prof. Sarah Johnson</td>
-        <td class="py-4 pl-14">38</td>
-        <td class="py-4 pl-8">Tue/Thu 2:00 PM</td>
-        <td class="flex items-center justify-center gap-2 px-4 py-4">
-          <button class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md cursor-pointer">
-            <i class="fa-solid fa-eye"></i>
-            View
-          </button>
-          <button class="bg-orange-400 w-[80px] p-2 text-white border rounded-md cursor-pointer">
-            <i class="fa-solid fa-pen-to-square"></i>
-            Edit
-          </button>
-        </td>
-      </tr>
-      
-      <tr class="py-40 border-b border-slate-300">
-        <td class="py-4 pl-8">ENG150</td>
-        <td class="py-4 pl-12">Engineering Principles</td>
-        <td class="py-4 pl-8">Dr. Robert Chen</td>
-        <td class="py-4 pl-14">52</td>
-        <td class="py-4 pl-8">Mon/Fri 9:00 AM</td>
+      <tr *ngFor="let course of courses" class="py-40 border-b border-slate-300">
+        <td class="py-4 pl-8">{{course.code}}</td>
+        <td class="py-4 pl-12">{{course.name}}</td>
+        <td class="py-4 pl-8">{{course.instructor}}</td>
+        <td class="py-4 pl-14">{{course.enrolled}}</td>
+        <td class="py-4 pl-8">{{course.schedule}}</td>
         <td class="flex items-center justify-center gap-2 px-4 py-4">
           <button class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md cursor-pointer">
             <i class="fa-solid fa-eye"></i>
