@@ -1,0 +1,192 @@
+<div class="p-10" *ngIf="formData; else loading">
+
+  <!-- Heading -->
+  <div class="w-full flex">
+    <div class="text-blue-700/80 font-bold text-3xl flex items-center">
+      <i class="fa-solid fa-gear mr-2"></i>
+      <h1>System Settings</h1>
+    </div>
+  </div>
+
+  <hr class="w-full border-slate-300 my-6">
+
+  <!-- ================= Institution Information ================= -->
+  <div class="my-5 p-5 w-full border border-slate-300 rounded-md">
+
+    <div class="flex items-center pb-5">
+      <i class="fa-solid fa-building-columns mr-2 text-xl"></i>
+      <h2 class="font-bold text-xl">Institution Information</h2>
+    </div>
+
+    <label class="block mb-1">Institution Name</label>
+    <input
+      [(ngModel)]="formData.institution.name"
+      class="w-full h-[40px] p-2 border rounded-md"
+    />
+
+    <div class="flex justify-between gap-10 py-5">
+      <div class="w-[430px]">
+        <label>Email Id</label>
+        <input
+          [(ngModel)]="formData.institution.email"
+          class="w-full h-[40px] p-2 border rounded-md"
+        />
+      </div>
+
+      <div class="w-[430px]">
+        <label>Phone Number</label>
+        <input
+          [(ngModel)]="formData.institution.phone"
+          class="w-full h-[40px] p-2 border rounded-md"
+        />
+      </div>
+    </div>
+
+    <label>Address</label>
+    <textarea
+      [(ngModel)]="formData.institution.address"
+      class="w-full h-[80px] p-2 border rounded-md">
+    </textarea>
+  </div>
+
+  <!-- ================= Academic Settings ================= -->
+  <div class="my-5 p-5 w-full border border-slate-300 rounded-md">
+
+    <div class="flex items-center pb-5">
+      <i class="fa-solid fa-graduation-cap mr-2 text-xl"></i>
+      <h2 class="font-bold text-xl">Academic Settings</h2>
+    </div>
+
+    <div class="flex justify-between gap-10 py-5">
+      <div class="w-[430px]">
+        <label>Current Semester</label>
+        <select
+          [(ngModel)]="formData.academic.semester"
+          class="w-full h-[40px] p-2 border rounded-md">
+          <option *ngFor="let sem of [1,2,3,4,5,6,7,8]" [value]="sem">
+            {{ sem }}
+          </option>
+        </select>
+      </div>
+
+      <div class="w-[430px]">
+        <label>Academic Year</label>
+        <select
+          [(ngModel)]="formData.academic.year"
+          class="w-full h-[40px] p-2 border rounded-md">
+          <option>2021-2022</option>
+          <option>2022-2023</option>
+          <option>2023-2024</option>
+          <option>2024-2025</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="flex justify-between gap-10 py-5">
+      <div class="w-[430px]">
+        <label>Passing Grade</label>
+        <input
+          type="number"
+          [(ngModel)]="formData.academic.passing_grade"
+          class="w-full h-[40px] p-2 border rounded-md"
+        />
+      </div>
+
+      <div class="w-[430px]">
+        <label>Min. Attendance Required</label>
+        <input
+          type="number"
+          [(ngModel)]="formData.academic.attendance_required"
+          class="w-full h-[40px] p-2 border rounded-md"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Notification Settings ================= -->
+  <div class="my-5 p-5 w-full border border-slate-300 rounded-md">
+
+    <div class="px-5 pb-3 flex items-start">
+      <input
+        type="checkbox"
+        [(ngModel)]="formData.notifications.email"
+        class="scale-200 mr-6 mt-1"
+      />
+      <div>
+        <h1 class="font-bold">Email Notifications</h1>
+        <label class="text-[15px] text-slate-500">
+          Receive email updates for important events
+        </label>
+      </div>
+    </div>
+
+    <hr class="w-full text-slate-300 shadow-md border-[0.5px] mb-10">
+
+    <div class="px-5 pb-3 flex items-start">
+      <input
+        type="checkbox"
+        [(ngModel)]="formData.notifications.grade"
+        class="scale-200 mr-6 mt-1"
+      />
+      <div>
+        <h1 class="font-bold">Grade Updates</h1>
+        <label class="text-[15px] text-slate-500">
+          Notify when grades are posted or updated
+        </label>
+      </div>
+    </div>
+
+    <hr class="w-full text-slate-300 border-[0.1px] mb-10">
+
+    <div class="px-5 pb-3 flex items-start">
+      <input
+        type="checkbox"
+        [(ngModel)]="formData.notifications.attendance"
+        class="scale-200 mr-6 mt-1"
+      />
+      <div>
+        <h1 class="font-bold">Attendance Alerts</h1>
+        <label class="text-[15px] text-slate-500">
+          Notify when attendance falls below minimum
+        </label>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= Data Management ================= -->
+  <div class="my-5 p-5 w-full border border-slate-300 rounded-md">
+    <div class="flex items-center pb-5">
+      <i class="fa-solid fa-database mr-2 font-bold text-xl"></i>
+      <h1 class="font-bold text-xl">Data Management</h1>
+    </div>
+
+    <div class="flex gap-3">
+      <button class="bg-blue-600/90 text-white p-2 px-2 rounded-md flex items-center gap-2">
+        <i class="fa-solid fa-download"></i> Export all data
+      </button>
+      <button class="bg-gray-600/90 text-white p-2 px-2 rounded-md flex items-center gap-2">
+        <i class="fa-solid fa-download"></i> Create backup
+      </button>
+      <button class="bg-red-600/90 text-white p-2 px-2 rounded-md flex items-center gap-2">
+        <i class="fa-solid fa-download"></i> Clear all data
+      </button>
+    </div>
+  </div>
+
+  <!-- Save -->
+  <div class="flex justify-center mt-10">
+    <button
+      (click)="saveSettings()"
+      class="bg-blue-600 text-white text-lg px-8 py-3 rounded-md">
+      Save
+    </button>
+  </div>
+
+</div>
+
+<ng-template #loading>
+  <div class="text-center text-gray-500 mt-20">
+    Loading system settings...
+  </div>
+</ng-template>

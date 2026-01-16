@@ -22,12 +22,12 @@
     </thead>
 
     <tbody class="text-[15px]">
-      <tr *ngFor="let course of courses" class="py-40 border-b border-slate-300">
-        <td class="py-4 pl-8">{{course.code}}</td>
-        <td class="py-4 pl-12">{{course.name}}</td>
-        <td class="py-4 pl-8">{{course.instructor}}</td>
-        <td class="py-4 pl-14">{{course.enrolled}}</td>
-        <td class="py-4 pl-8">{{course.schedule}}</td>
+      <tr *ngFor="let c of courses" class="py-40 border-b border-slate-300">
+        <td class="py-4 pl-8">{{ c.course_id }}</td>
+        <td class="py-4 pl-12">{{ c.course_name }}</td>
+        <td class="py-4 pl-8">{{ c.instructor }}</td>
+        <td class="py-4 pl-14">{{ c.students_enrolled }}</td>
+        <td class="py-4 pl-8">{{ c.schedule }}</td>
         <td class="flex items-center justify-center gap-2 px-4 py-4">
           <button class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md cursor-pointer">
             <i class="fa-solid fa-eye"></i>

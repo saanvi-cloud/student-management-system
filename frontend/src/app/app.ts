@@ -6,8 +6,8 @@ import { Students } from './components/students/students';
 import { AddStudent } from './components/add-student/add-student';
 import { Courses } from './components/courses/courses';
 import { Grades } from './components/grades/grades';
-import { Attendance } from './components/attendance/attendance';
-import { System } from './components/system/system';
+import { AttendanceComponent } from './components/attendance/attendance';
+import { SettingsComponent } from './components/system/system';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
