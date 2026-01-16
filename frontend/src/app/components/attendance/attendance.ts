@@ -2,23 +2,27 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AttendanceService } from '../../services/attendance.service';
 import { Attendance } from '../../models/attendance.model';
+import { Observable } from 'rxjs';
 
 @Component({
-  selector: 'app-attendance', 
-  standalone: true, 
+  selector: 'app-attendance',
+  standalone: true,
   imports: [CommonModule],
   templateUrl: './attendance.html',
   styleUrl: './attendance.css',
 })
-export class AttendanceComponent implements OnInit{
-  attendance: Attendance[] = [];
+export class AttendanceComponent implements OnInit {
 
-  constructor (private attendanceService: AttendanceService) {};
+  attendance$!: Observable<Attendance[] | null>;
+
+  constructor(private attendanceService: AttendanceService) {}
 
   ngOnInit(): void {
-    this.attendanceService.getAttendance().subscribe(data => {
-      console.log('Attendance: ', data);
-      this.attendance = data;
-    });
+    this.attendance$ = this.attendanceService.attendance$;
+    this.attendanceService.loadAttendance();
+  }
+
+  refreshAttendance(): void {
+    this.attendanceService.loadAttendance();
   }
 }

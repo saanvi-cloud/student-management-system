@@ -1,4 +1,5 @@
-<div class="p-10" *ngIf="formData; else loading">
+<div *ngIf="settings$ | async; else loading">
+
 
   <!-- Heading -->
   <div class="w-full flex">
@@ -186,7 +187,7 @@
 </div>
 
 <ng-template #loading>
-  <div class="text-center text-gray-500 mt-20">
+  <p class="text-center text-slate-500">
     Loading system settings...
-  </div>
+  </p>
 </ng-template>

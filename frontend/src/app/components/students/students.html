@@ -5,15 +5,29 @@
       <i class="fa-solid fa-users mr-2"></i>
       <h1>Student Records</h1>
     </div>
+
     <form action="/search" method="get">
-      <input type="search" id="site-search" name="q" placeholder="Search students..." class="w-[260px]"/>
-      <button class="bg-blue-700/80 text-white text-[14px] p-3 border rounded-md"><i class="fa-solid fa-rotate text-white text-[14px] p-[1px] mr-2 border border-blue-700/10 rounded-md"></i>Refresh</button>
+      <input
+        type="search"
+        id="site-search"
+        name="q"
+        placeholder="Search students..."
+        class="w-[260px]"
+      />
+      <button
+        type="button"
+        (click)="loadStudents()"
+        class="bg-blue-700/80 text-white text-[14px] p-3 border rounded-md"
+      >
+        <i class="fa-solid fa-rotate mr-2"></i>
+        Refresh
+      </button>
     </form>
   </div>
-  <hr class="w-full text-slate-300 shadow-md border-[0.5px] my-6">
+
+  <hr class="w-full text-slate-300 shadow-md border-[0.5px] my-6" />
 
   <!-- List -->
-
   <table class="w-full">
     <thead class="table-header">
       <th class="table-cell">ID</th>
@@ -25,9 +39,11 @@
       <th class="table-cell">Actions</th>
     </thead>
 
-    <tbody class="text-[15px]">
+    <tbody
+      *ngIf="students$ | async as students; else loading"
+      class="text-[15px]"
+    >
       <tr *ngFor="let s of students" class="border-b border-slate-300">
-
         <td class="py-4 pl-4">{{ s.student_id }}</td>
         <td class="py-4 pl-8">{{ s.student_name }}</td>
         <td class="py-4 pl-8">{{ s.student_email }}</td>
@@ -38,9 +54,13 @@
           <div
             class="rounded-[15px] text-[14px] px-3 py-1 text-center"
             [ngClass]="{
-              'bg-red-400/20 text-red-950/80': s.student_status === 'Inactive',
-              'bg-green-400/20 text-green-950/80': s.student_status === 'Active' || s.student_status === 'Graduated'
-            }">
+              'bg-red-400/20 text-red-950/80':
+                s.student_status === 'Inactive',
+              'bg-green-400/20 text-green-950/80':
+                s.student_status === 'Active' ||
+                s.student_status === 'Graduated'
+            }"
+          >
             {{ s.student_status }}
           </div>
         </td>
@@ -56,11 +76,15 @@
             <i class="fa-solid fa-trash"></i> Delete
           </button>
         </td>
-
       </tr>
     </tbody>
-
-
   </table>
-
 </div>
+
+<ng-template #loading>
+  <tr>
+    <td colspan="7" class="text-center text-slate-500 py-10">
+      Loading students...
+    </td>
+  </tr>
+</ng-template>

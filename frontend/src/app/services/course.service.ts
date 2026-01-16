@@ -1,15 +1,22 @@
-import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { Observable } from "rxjs";
-import { Course } from "../models/course.model";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { Course } from '../models/course.model';
 
-@Injectable ({ providedIn: 'root' })
+@Injectable({ providedIn: 'root' })
 export class CourseService {
+
   private apiUrl = 'http://localhost:3000/api/courses';
 
-  constructor (private http: HttpClient) {}
+  private coursesSubject = new BehaviorSubject<Course[] | null>(null);
+  courses$ = this.coursesSubject.asObservable();
 
-  getCourses(): Observable<Course[]> {
-    return this.http.get<Course[]>(this.apiUrl);
+  constructor(private http: HttpClient) {}
+
+  loadCourses(): void {
+    this.http.get<Course[]>(this.apiUrl).subscribe({
+      next: (data) => this.coursesSubject.next(data),
+      error: (err) => console.error('Courses error:', err)
+    });
   }
 }

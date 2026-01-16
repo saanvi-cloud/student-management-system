@@ -140,28 +140,25 @@ app.get('/api/settings', async (req, res) => {
 });
 
 app.put('/api/settings', async (req, res) => {
-  const { institution, academic } = req.body;
+  const { institution, academic, notifications } = req.body;
 
   try {
     await db.query(
-      `UPDATE institution 
-       SET name=?, email=?, phone=?, address=?`,
-      [
-        institution.name,
-        institution.email,
-        institution.phone,
-        institution.address
-      ]
+      `UPDATE institution SET name=?, email=?, phone=?, address=?`,
+      [institution.name, institution.email, institution.phone, institution.address]
     );
 
     await db.query(
-      `UPDATE academic 
-       SET semester=?, year=?, passing_grade=?, attendance_required=?`,
+      `UPDATE academic SET semester=?, year=?, passing_grade=?, attendance_required=?`,
+      [academic.semester, academic.year, academic.passing_grade, academic.attendance_required]
+    );
+
+    await db.query(
+      `UPDATE notifications SET email=?, grade=?, attendance=?`,
       [
-        academic.semester,
-        academic.year,
-        academic.passing_grade,
-        academic.attendance_required
+        notifications.email ? 1 : 0,
+        notifications.grade ? 1 : 0,
+        notifications.attendance ? 1 : 0
       ]
     );
 

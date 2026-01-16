@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BehaviorSubject } from 'rxjs';
 import { SettingsService } from '../../services/system.service';
 import { Settings } from '../../models/system.model';
+import { Observable, filter, map } from 'rxjs';
 
 @Component({
   selector: 'app-system',
@@ -13,31 +13,30 @@ import { Settings } from '../../models/system.model';
 })
 export class SettingsComponent implements OnInit {
 
-  private settingsSubject = new BehaviorSubject<Settings | null>(null);
-  settings$ = this.settingsSubject.asObservable();
-
-  formData!: Settings; // editable copy
+  settings$!: Observable<Settings>;
+  formData!: Settings;
 
   constructor(private settingsService: SettingsService) {}
 
   ngOnInit(): void {
-    this.settingsService.getSettings().subscribe({
-      next: (data) => {
-        this.settingsSubject.next(data);
-        this.formData = JSON.parse(JSON.stringify(data)); // deep copy
-      },
-      error: err => console.error(err)
-    });
+    // Trigger API load
+    this.settingsService.loadSettings();
+
+    // Ignore initial null emission
+    this.settings$ = this.settingsService.settings$.pipe(
+      filter((settings): settings is Settings => settings !== null),
+      map(settings => {
+        // deep copy to avoid mutating store
+        this.formData = structuredClone(settings);
+        return settings;
+      })
+    );
   }
 
   saveSettings(): void {
     this.settingsService.updateSettings(this.formData).subscribe({
-      next: () => {
-        // update observable so async pipe stays in sync
-        this.settingsSubject.next(this.formData);
-        alert('Settings saved successfully');
-      },
-      error: err => console.error(err)
+      next: () => alert('Settings saved successfully'),
+      error: (err) => console.error(err)
     });
   }
 }
