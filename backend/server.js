@@ -10,7 +10,7 @@ app.get('/api/students', async (req, res) => {
   const sql = `
   SELECT 
     s.student_id,
-    s.student_name,
+    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
     s.student_email,
     s.student_status,
     GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses,
@@ -19,11 +19,7 @@ app.get('/api/students', async (req, res) => {
   LEFT JOIN enrollments e ON s.student_id = e.student_id
   LEFT JOIN courses c ON e.course_id = c.course_id
   LEFT JOIN grades g ON s.student_id = g.student_id
-  GROUP BY 
-    s.student_id,
-    s.student_name,
-    s.student_email,
-    s.student_status;
+  GROUP BY s.student_id;
 
   `;
 
@@ -33,6 +29,42 @@ app.get('/api/students', async (req, res) => {
   } catch (err) {
     console.error('SQL ERROR:', err);
     res.status(500).json({ error: 'Database query failed' });
+  }
+});
+app.post('/api/students', async (req, res) => {
+  const {
+    student_id,
+    first_name,
+    last_name,
+    email,
+    phone,
+    date_of_birth,
+    address,
+    status
+  } = req.body;
+
+  try {
+    await db.query(
+      `INSERT INTO students 
+       (student_id, first_name, last_name, student_email, phone, date_of_birth, address, student_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        student_id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        date_of_birth,
+        address,
+        status
+      ]
+    );
+
+    res.status(201).json({ message: 'Student added successfully' });
+
+  } catch (err) {
+    console.error('ADD STUDENT ERROR:', err);
+    res.status(500).json({ error: 'Failed to add student' });
   }
 });
 
@@ -68,7 +100,7 @@ app.get('/api/grades', async (req, res) => {
   const sql = `
   SELECT 
     g.student_id, 
-    s.student_name, 
+    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
     c.course_name, 
     g.grade_numeric, 
     g.grade_letter, 
@@ -79,6 +111,7 @@ app.get('/api/grades', async (req, res) => {
     ON g.student_id = s.student_id 
   LEFT JOIN courses c 
     ON g.course_id = c.course_id;
+
   `;
   try {
     const [grades] = await db.query(sql);
@@ -93,20 +126,20 @@ app.get('/api/grades', async (req, res) => {
 app.get('/api/attendance', async (req, res) => {
   const sql = `
   SELECT 
-  a.student_id, 
-  s.student_name, 
-  c.course_name, 
-  a.attendance_rate, 
-  a.total_classes, 
-  a.present, 
-  a.absent, 
-  a.attendance_status
+    a.student_id, 
+    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+    c.course_name, 
+    a.attendance_rate, 
+    a.total_classes, 
+    a.present, 
+    a.absent, 
+    a.attendance_status
   FROM attendance a
   LEFT JOIN students s 
-  ON s.student_id = a.student_id
+    ON s.student_id = a.student_id
   LEFT JOIN courses c 
-  ON c.course_id = a.course_id;
-  `;
+    ON c.course_id = a.course_id;
+    `;
   try {
     const [attendance] = await db.query(sql);
     res.json(attendance);
