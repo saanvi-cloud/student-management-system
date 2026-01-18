@@ -33,7 +33,6 @@ app.get('/api/students', async (req, res) => {
 });
 app.post('/api/students', async (req, res) => {
   const {
-    student_id,
     first_name,
     last_name,
     email,
@@ -44,27 +43,50 @@ app.post('/api/students', async (req, res) => {
   } = req.body;
 
   try {
+    // 1️⃣ Get last student_id
+    const [rows] = await db.query(
+      `SELECT student_id 
+       FROM students 
+       ORDER BY student_id DESC 
+       LIMIT 1`
+    );
+
+    let newId;
+
+    if (rows.length === 0) {
+      newId = 'UNI2021001';
+    } else {
+      const lastId = rows[0].student_id; // UNI2021003
+      const prefix = lastId.substring(0, 7); // UNI2021
+      const number = parseInt(lastId.substring(7)) + 1;
+      newId = prefix + number.toString().padStart(3, '0');
+    }
+
+    // 2️⃣ Insert student
     await db.query(
       `INSERT INTO students 
-       (student_id, first_name, last_name, student_email, phone, date_of_birth, address, student_status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      (student_id, first_name, last_name, student_email, phone, date_of_birth, address, student_status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        student_id,
+        newId,
         first_name,
         last_name,
         email,
         phone,
-        date_of_birth,
+        date_of_birth || null,
         address,
         status
       ]
     );
 
-    res.status(201).json({ message: 'Student added successfully' });
+    res.status(201).json({
+      message: 'Student added successfully',
+      student_id: newId
+    });
 
   } catch (err) {
     console.error('ADD STUDENT ERROR:', err);
-    res.status(500).json({ error: 'Failed to add student' });
+    res.status(500).json({ error: err.message });
   }
 });
 

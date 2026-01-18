@@ -3,7 +3,7 @@ import { Header } from './components/header/header';
 import { Navbar } from './components/navbar/navbar';
 import { Dashboard } from './components/dashboard/dashboard';
 import { Students } from './components/students/students';
-import { AddStudent } from './components/add-student/add-student';
+import { AddStudentComponent } from './components/add-student/add-student';
 import { Courses } from './components/courses/courses';
 import { Grades } from './components/grades/grades';
 import { AttendanceComponent } from './components/attendance/attendance';
