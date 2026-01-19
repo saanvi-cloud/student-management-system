@@ -52,33 +52,41 @@
   <div class="w-full mt-20">
     <h3 class="text-[22px] font-bold mb-3">Top Performing Students</h3>
     <table class="w-full">
-
       <thead class="table-header">
-        <th class="table-cell">ID</th>
-        <th class="table-cell">Name</th>
-        <th class="table-cell">Course</th>
-        <th class="table-cell">Grade</th>
-        <th class="table-cell">Status</th>
+        <tr>
+          <th class="table-cell">ID</th>
+          <th class="table-cell">Name</th>
+          <th class="table-cell">Course</th>
+          <th class="table-cell">Grade</th>
+          <th class="table-cell">Status</th>
+        </tr>
       </thead>
 
       <tbody class="text-[16px]">
         <tr *ngFor="let top of tops" class="py-40 border-b border-slate-300">
+
           <td class="py-4 pl-10">{{ top.id }}</td>
           <td class="py-4 pl-8">{{ top.name }}</td>
-          <td class="py-4 pl-8">{{ top.course }}</td>
-          <td class="py-4 pl-8">{{ top.grade }}</td>
+          <td class="py-4 pl-8">{{ top.course || '—' }}</td>
+          <td class="py-4 pl-8">{{ top.grade || '—' }}</td>
+
           <td class="pl-10">
-            <button class="rounded-[15px] text-[14px] p-[6px] mx-1 flex justify-center"
-            [ngClass] = "{
-              'bg-green-400/20 text-green-950/80': top.status === 'Active' || top.status === 'Graduated', 
-              'bg-red-400/20 text-red-950/80': top.status === 'Inactive'
-          }">
+            <button
+              class="rounded-[15px] text-[14px] p-[6px] mx-1 flex justify-center"
+              [ngClass]="{
+                'bg-green-400/20 text-green-950/80':
+                  top.status === 'Active' || top.status === 'Graduated',
+                'bg-red-400/20 text-red-950/80':
+                  top.status === 'Inactive'
+              }"
+            >
               {{ top.status }}
             </button>
           </td>
+
         </tr>
-        
       </tbody>
+
     </table>
   </div>
 

@@ -6,6 +6,43 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get('/api/dashboard', async (req, res) => {
+  try {
+    // Top performing students
+    const [topStudents] = await db.query(`
+      SELECT 
+        s.student_id,
+        CONCAT(s.first_name, ' ', s.last_name) AS name,
+        GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS course,
+        ROUND(AVG(g.grade_numeric), 2) AS grade,
+        s.student_status AS status
+      FROM students s
+      LEFT JOIN grades g ON s.student_id = g.student_id
+      LEFT JOIN courses c ON g.course_id = c.course_id
+      GROUP BY s.student_id
+      ORDER BY grade DESC
+      LIMIT 5
+    `);
+
+    // Dashboard stats
+    const [[stats]] = await db.query(`
+      SELECT
+        (SELECT COUNT(*) FROM students) AS totalStudents,
+        (SELECT COUNT(*) FROM courses) AS totalCourses,
+        (SELECT COUNT(*) FROM grades) AS totalGrades
+    `);
+
+    res.json({
+      stats,
+      topStudents
+    });
+
+  } catch (err) {
+    console.error('DASHBOARD ERROR:', err);
+    res.status(500).json({ error: 'Dashboard data failed' });
+  }
+});
+
 app.get('/api/students', async (req, res) => {
   const sql = `
   SELECT 
@@ -39,32 +76,32 @@ app.post('/api/students', async (req, res) => {
     phone,
     date_of_birth,
     address,
-    status
+    status,
+    course_ids
   } = req.body;
 
   try {
-    // 1️⃣ Get last student_id
+    // START TRANSACTION
+    await db.query('START TRANSACTION');
+
+    // 1️⃣ Generate new student_id
     const [rows] = await db.query(
-      `SELECT student_id 
-       FROM students 
-       ORDER BY student_id DESC 
-       LIMIT 1`
+      `SELECT student_id FROM students ORDER BY student_id DESC LIMIT 1`
     );
 
     let newId;
-
     if (rows.length === 0) {
       newId = 'UNI2021001';
     } else {
-      const lastId = rows[0].student_id; // UNI2021003
-      const prefix = lastId.substring(0, 7); // UNI2021
+      const lastId = rows[0].student_id;
+      const prefix = lastId.substring(0, 7);
       const number = parseInt(lastId.substring(7)) + 1;
       newId = prefix + number.toString().padStart(3, '0');
     }
 
     // 2️⃣ Insert student
     await db.query(
-      `INSERT INTO students 
+      `INSERT INTO students
       (student_id, first_name, last_name, student_email, phone, date_of_birth, address, student_status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -79,12 +116,41 @@ app.post('/api/students', async (req, res) => {
       ]
     );
 
+    // 3️⃣ Insert enrollments + empty grades + empty attendance
+    for (const course_id of course_ids) {
+
+      await db.query(
+        `INSERT INTO enrollments (student_id, course_id)
+         VALUES (?, ?)`,
+        [newId, course_id]
+      );
+
+      await db.query(
+        `INSERT INTO grades
+        (student_id, course_id, grade_numeric, grade_letter, performance, actions)
+        VALUES (?, ?, NULL, NULL, NULL, NULL)`,
+        [newId, course_id]
+      );
+
+      await db.query(
+        `INSERT INTO attendance
+        (student_id, course_id, attendance_rate, total_classes, present, absent, attendance_status)
+        VALUES (?, ?, NULL, 0, 0, 0, NULL)`,
+        [newId, course_id]
+      );
+    }
+
+    // COMMIT
+    await db.query('COMMIT');
+
     res.status(201).json({
       message: 'Student added successfully',
       student_id: newId
     });
 
   } catch (err) {
+    // ROLLBACK ON ERROR
+    await db.query('ROLLBACK');
     console.error('ADD STUDENT ERROR:', err);
     res.status(500).json({ error: err.message });
   }
