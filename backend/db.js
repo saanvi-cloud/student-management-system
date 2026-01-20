@@ -1,16 +1,25 @@
-// backend/db.js
 const mysql = require('mysql2');
 
-const db = mysql.createConnection({
+// Create a connection pool
+const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'students'
+  database: 'students',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-db.connect(err => {
-  if (err) throw err;
+// Optional: test connection (SAFE way for pools)
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error('MySQL Connection Failed:', err);
+    return;
+  }
   console.log('MySQL Connected');
+  connection.release();
 });
 
-module.exports = db.promise();
+// Export promise-based pool
+module.exports = pool.promise();

@@ -6,7 +6,9 @@
     <hr class="w-full text-slate-300 shadow-md border-[0.5px] my-6">
 
 
-    <form class="w-full" (ngSubmit)="onSubmit()">
+    <!-- <form class="w-full" (ngSubmit)="onSubmit()"> -->
+    <!-- <form (ngSubmit)="onSubmit()" #studentForm="ngForm"> -->
+    <form (ngSubmit)="onSubmit()" #studentForm="ngForm">
 
       <div class="w-full gap-8 mb-7 flex justify-between">
         <div class="w-full">
@@ -14,7 +16,8 @@
           <input
             name="first_name"
             [(ngModel)]="student.first_name"
-            class="p-2 w-full border border-slate-300 rounded-md" />
+            class="p-2 w-full border border-slate-300 rounded-md" 
+            required />
         </div>
         <div class="w-full">
           <h4 class="p-2">Last Name*</h4>
@@ -31,7 +34,8 @@
           <input
             name="email"
             [(ngModel)]="student.email"
-            class="p-2 w-full border border-slate-300 rounded-md" />
+            class="p-2 w-full border border-slate-300 rounded-md" 
+            required />
         </div>
         <div class="w-full">
           <h4 class="p-2">Phone Number</h4>
@@ -44,25 +48,32 @@
 
       <div class="w-full gap-8 mb-7 flex justify-between">
         <div class="w-full">
-          <h4 class="p-2">Course*</h4>
-          <select
-            name="course_id"
-            [(ngModel)]="student.course_id"
-            class="p-2 w-full border border-slate-300 rounded-md">
+          <label>Courses*</label>
 
-            <option value="">Select a course</option>
-            <option value="CSE101">Computer Science</option>
-            <option value="BUS202">Business Administration</option>
-            <option value="ENG150">Engineering</option>
-          </select>
-        </div>
-        <div class="w-full">
-          <h4 class="p-2">Grade*</h4>
           <input
-            type="number"
-            name="grade_numeric"
-            [(ngModel)]="student.grade_numeric"
-            class="p-2 w-full border border-slate-300 rounded-md" />
+            type="text"
+            name="courseInput"
+            placeholder="Type courses separated by comma"
+            [(ngModel)]="courseInput"
+            (input)="onCourseInput()"
+            class="form-control"
+          />
+
+          <ul class="suggestions" *ngIf="filteredCourses.length">
+            <li
+              *ngFor="let course of filteredCourses"
+              (click)="selectCourse(course)"
+            >
+              {{ course.course_name }}
+            </li>
+          </ul>
+
+          <div class="selected-courses">
+            <span *ngFor="let c of selectedCourses">
+              {{ c.course_name }}
+              <button type="button" (click)="removeCourse(c)">×</button>
+            </span>
+          </div>
         </div>
       </div>
       
@@ -71,9 +82,10 @@
           <h4 class="p-2">Date of Birth</h4>
           <input
             type="date"
-            name="date_of_birth"
+            name="date_of_birth" 
             [(ngModel)]="student.date_of_birth"
-            class="p-2 w-full border border-slate-300 rounded-md" />
+            class="p-2 w-full border border-slate-300 rounded-md" 
+            required/>
         </div>
         <div class="w-full">
           <h4 class="p-2">Status</h4>
@@ -99,12 +111,12 @@
         </div>
       </div>
       <div class="pt-10 flex gap-4">
-        <button
-          type="submit"
-          class="bg-blue-600 text-white p-2 border border-blue-700 rounded-md">
-          <i class="fa-solid fa-floppy-disk mr-2"></i>
-          Save student
-        </button>
+      <button
+        type="submit"
+        [disabled]="studentForm.invalid || selectedCourses.length === 0"
+        class="bg-blue-600 text-white p-2 rounded-md disabled:opacity-50">
+        Save student
+      </button>
 
         <button
           type="reset"

@@ -48,15 +48,35 @@ app.get('/api/students', async (req, res) => {
   SELECT 
     s.student_id,
     CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-    s.student_email,
-    s.student_status,
-    GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses,
-    AVG(g.grade_numeric) AS grade_numeric
+    s.student_email AS student_email,
+    s.student_status AS student_status,
+    GROUP_CONCAT(c.course_name SEPARATOR ', ') AS courses
   FROM students s
   LEFT JOIN enrollments e ON s.student_id = e.student_id
   LEFT JOIN courses c ON e.course_id = c.course_id
-  LEFT JOIN grades g ON s.student_id = g.student_id
   GROUP BY s.student_id;
+  // SELECT 
+  //   s.student_id,
+  //   CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+  //   s.email AS student_email,
+  //   s.status AS student_status,
+  //   GROUP_CONCAT(c.course_name SEPARATOR ', ') AS courses
+  // FROM students s
+  // LEFT JOIN student_courses sc ON s.student_id = sc.student_id
+  // LEFT JOIN courses c ON sc.course_id = c.course_id
+  // GROUP BY s.student_id;
+  // SELECT 
+  //   s.student_id,
+  //   CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+  //   s.student_email,
+  //   s.student_status,
+  //   GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses,
+  //   AVG(g.grade_numeric) AS grade_numeric
+  // FROM students s
+  // LEFT JOIN enrollments e ON s.student_id = e.student_id
+  // LEFT JOIN courses c ON e.course_id = c.course_id
+  // LEFT JOIN grades g ON s.student_id = g.student_id
+  // GROUP BY s.student_id;
 
   `;
 
@@ -69,90 +89,70 @@ app.get('/api/students', async (req, res) => {
   }
 });
 app.post('/api/students', async (req, res) => {
-  const {
-    first_name,
-    last_name,
-    email,
-    phone,
-    date_of_birth,
-    address,
-    status,
-    course_ids
-  } = req.body;
-
+  const conn = await db.getConnection();
   try {
-    // START TRANSACTION
-    await db.query('START TRANSACTION');
+    await conn.beginTransaction();
 
-    // 1️⃣ Generate new student_id
-    const [rows] = await db.query(
-      `SELECT student_id FROM students ORDER BY student_id DESC LIMIT 1`
-    );
+    const {
+      first_name,
+      last_name,
+      email,
+      phone,
+      date_of_birth,
+      address,
+      status,
+      course_ids
+    } = req.body;
 
-    let newId;
-    if (rows.length === 0) {
-      newId = 'UNI2021001';
-    } else {
-      const lastId = rows[0].student_id;
-      const prefix = lastId.substring(0, 7);
-      const number = parseInt(lastId.substring(7)) + 1;
-      newId = prefix + number.toString().padStart(3, '0');
-    }
+    const studentId = await generateStudentId(conn);
 
-    // 2️⃣ Insert student
-    await db.query(
-      `INSERT INTO students
+    await conn.query(
+      `INSERT INTO students 
       (student_id, first_name, last_name, student_email, phone, date_of_birth, address, student_status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        newId,
+        studentId,
         first_name,
         last_name,
         email,
         phone,
-        date_of_birth || null,
+        date_of_birth,
         address,
         status
       ]
     );
 
-    // 3️⃣ Insert enrollments + empty grades + empty attendance
-    for (const course_id of course_ids) {
-
-      await db.query(
+    for (const courseId of course_ids) {
+      await conn.query(
         `INSERT INTO enrollments (student_id, course_id)
          VALUES (?, ?)`,
-        [newId, course_id]
-      );
-
-      await db.query(
-        `INSERT INTO grades
-        (student_id, course_id, grade_numeric, grade_letter, performance, actions)
-        VALUES (?, ?, NULL, NULL, NULL, NULL)`,
-        [newId, course_id]
-      );
-
-      await db.query(
-        `INSERT INTO attendance
-        (student_id, course_id, attendance_rate, total_classes, present, absent, attendance_status)
-        VALUES (?, ?, NULL, 0, 0, 0, NULL)`,
-        [newId, course_id]
+        [studentId, courseId]
       );
     }
 
-    // COMMIT
-    await db.query('COMMIT');
+    for (const courseId of course_ids) {
+      await conn.query(
+        `INSERT INTO grades (student_id, course_id)
+         VALUES (?, ?)`,
+        [studentId, courseId]
+      );
 
-    res.status(201).json({
-      message: 'Student added successfully',
-      student_id: newId
-    });
+      await conn.query(
+        `INSERT INTO attendance (student_id, course_id, total_classes, present, absent)
+         VALUES (?, ?, 0, 0, 0)`,
+        [studentId, courseId]
+      );
+    }
+
+    await conn.commit();
+    res.status(201).json({ message: 'Student created successfully' });
 
   } catch (err) {
-    // ROLLBACK ON ERROR
-    await db.query('ROLLBACK');
+    await conn.rollback();
     console.error('ADD STUDENT ERROR:', err);
     res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
   }
 });
 
@@ -289,5 +289,18 @@ app.put('/api/settings', async (req, res) => {
     res.status(500).json(err);
   }
 });
+
+async function generateStudentId(conn) {
+  const academicYear = '2021';
+
+  const [[row]] = await conn.query(`
+    SELECT COUNT(*) AS count 
+    FROM students 
+    WHERE student_id LIKE 'UNI${academicYear}%'
+  `);
+
+  const nextNumber = String(row.count + 1).padStart(3, '0');
+  return `UNI${academicYear}${nextNumber}`;
+}
 
 app.listen(3000, () => console.log('Server running on port 3000'));
