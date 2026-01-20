@@ -45,39 +45,16 @@ app.get('/api/dashboard', async (req, res) => {
 
 app.get('/api/students', async (req, res) => {
   const sql = `
-  SELECT 
-    s.student_id,
-    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-    s.student_email AS student_email,
-    s.student_status AS student_status,
-    GROUP_CONCAT(c.course_name SEPARATOR ', ') AS courses
-  FROM students s
-  LEFT JOIN enrollments e ON s.student_id = e.student_id
-  LEFT JOIN courses c ON e.course_id = c.course_id
-  GROUP BY s.student_id;
-  // SELECT 
-  //   s.student_id,
-  //   CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-  //   s.email AS student_email,
-  //   s.status AS student_status,
-  //   GROUP_CONCAT(c.course_name SEPARATOR ', ') AS courses
-  // FROM students s
-  // LEFT JOIN student_courses sc ON s.student_id = sc.student_id
-  // LEFT JOIN courses c ON sc.course_id = c.course_id
-  // GROUP BY s.student_id;
-  // SELECT 
-  //   s.student_id,
-  //   CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-  //   s.student_email,
-  //   s.student_status,
-  //   GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses,
-  //   AVG(g.grade_numeric) AS grade_numeric
-  // FROM students s
-  // LEFT JOIN enrollments e ON s.student_id = e.student_id
-  // LEFT JOIN courses c ON e.course_id = c.course_id
-  // LEFT JOIN grades g ON s.student_id = g.student_id
-  // GROUP BY s.student_id;
-
+    SELECT 
+      s.student_id,
+      CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+      s.student_email AS student_email,
+      s.student_status AS student_status,
+      GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses
+    FROM students s
+    LEFT JOIN enrollments e ON s.student_id = e.student_id
+    LEFT JOIN courses c ON e.course_id = c.course_id
+    GROUP BY s.student_id;
   `;
 
   try {
