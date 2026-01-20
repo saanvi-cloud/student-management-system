@@ -1,39 +1,30 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgClass } from '@angular/common';
 import { DashboardService } from '../../services/dashboard.service';
 import { DashboardStats, TopStudent, DashboardResponse } from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgClass],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
+  styleUrls: ['./dashboard.css'],
 })
+
 export class Dashboard implements OnInit {
 
-  tops: {
-    id: string;
-    name: string;
-    course: string | null;
-    grade: string | null;
-    status: string;
-  }[] = [];
+  tops: TopStudent[] = [];
 
   constructor(private dashboardService: DashboardService) {}
 
   ngOnInit() {
-    this.dashboardService.getDashboardData().subscribe(data => {
-
-      this.tops = data.topStudents.map(s => ({
-        id: s.student_id,
-        name: s.name,
-        course: s.course,
-        grade: s.grade !== null ? s.grade.toString() : null,
-        status: s.status
-      }));
+    console.log('Dashboard component initialized');
+    this.dashboardService.getDashboardData().subscribe({
+      next: data => {
+        console.log('Dashboard API response:', data);
+        this.tops = data.topStudents;
+      },
+      error: err => console.error(err)
     });
   }
 }
-
-

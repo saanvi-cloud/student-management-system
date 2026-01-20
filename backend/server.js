@@ -10,18 +10,18 @@ app.get('/api/dashboard', async (req, res) => {
   try {
     // Top performing students
     const [topStudents] = await db.query(`
-      SELECT 
-        s.student_id,
-        CONCAT(s.first_name, ' ', s.last_name) AS name,
-        GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS course,
-        ROUND(AVG(g.grade_numeric), 2) AS grade,
-        s.student_status AS status
-      FROM students s
-      LEFT JOIN grades g ON s.student_id = g.student_id
-      LEFT JOIN courses c ON g.course_id = c.course_id
-      GROUP BY s.student_id
-      ORDER BY grade DESC
-      LIMIT 5
+    SELECT 
+      s.student_id,
+      CONCAT(s.first_name, ' ', s.last_name) AS name,
+      GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS course,
+      COALESCE(ROUND(AVG(g.grade_numeric), 2), 0) AS grade,
+      s.student_status AS status
+    FROM students s
+    LEFT JOIN grades g ON s.student_id = g.student_id
+    LEFT JOIN courses c ON g.course_id = c.course_id
+    GROUP BY s.student_id
+    ORDER BY grade DESC
+    LIMIT 5;
     `);
 
     // Dashboard stats

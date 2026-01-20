@@ -63,27 +63,28 @@
       </thead>
 
       <tbody class="text-[16px]">
-        <tr *ngFor="let top of tops" class="py-40 border-b border-slate-300">
+        <tr *ngFor="let student of tops" class="border-b border-slate-300">
 
-          <td class="py-4 pl-10">{{ top.id }}</td>
-          <td class="py-4 pl-8">{{ top.name }}</td>
-          <td class="py-4 pl-8">{{ top.course || '—' }}</td>
-          <td class="py-4 pl-8">{{ top.grade || '—' }}</td>
+          <td class="py-4 pl-10">{{ student.student_id }}</td>
+          <td class="py-4 pl-8">{{ student.name }}</td>
+          <td class="py-4 pl-8">{{ student.course || '—' }}</td>
+          <td class="py-4 pl-8">{{ student.grade === '0.00' ? '—' : student.grade }}</td>
 
           <td class="pl-10">
             <button
-              class="rounded-[15px] text-[14px] p-[6px] mx-1 flex justify-center"
-              [ngClass]="{
-                'bg-green-400/20 text-green-950/80':
-                  top.status === 'Active' || top.status === 'Graduated',
-                'bg-red-400/20 text-red-950/80':
-                  top.status === 'Inactive'
-              }"
+              class="rounded-[15px] text-[14px] p-[6px] mx-1"
+                [ngClass]="{
+                  'bg-green-400/20 text-green-950/80':
+                    student.status === 'Active' ,
+                  'bg-blue-400/20 text-blue-950/80':
+                    student.status === 'Graduated',
+                  'bg-red-400/20 text-red-950/80':
+                    student.status === 'Inactive'
+                }"
             >
-              {{ top.status }}
+              {{ student.status }}
             </button>
           </td>
-
         </tr>
       </tbody>
 

@@ -1,15 +1,15 @@
 export interface DashboardStats {
   totalStudents: number;
-  activeStudents: number;
-  inactiveStudents: number;
+  totalCourses: number;
+  totalGrades: number;
 }
 
 export interface TopStudent {
   student_id: string;
   name: string;
   course: string;
-  grade: number;
-  status: 'Active' | 'Inactive';
+  grade: string | null;
+  status: 'Active' | 'Inactive' | 'Graduated';
 }
 
 export interface DashboardResponse {
