@@ -43,13 +43,35 @@ app.get('/api/dashboard', async (req, res) => {
   }
 });
 
+// app.get('/api/students', async (req, res) => {
+//   const sql = `
+//     SELECT 
+//       s.student_id,
+//       CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+//       s.student_email AS student_email,
+//       s.student_status AS student_status,
+//       GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses
+//     FROM students s
+//     LEFT JOIN enrollments e ON s.student_id = e.student_id
+//     LEFT JOIN courses c ON e.course_id = c.course_id
+//     GROUP BY s.student_id;
+//   `;
+
+//   try {
+//     const [rows] = await db.query(sql);
+//     res.json(rows);
+//   } catch (err) {
+//     console.error('SQL ERROR:', err);
+//     res.status(500).json({ error: 'Database query failed' });
+//   }
+// });
 app.get('/api/students', async (req, res) => {
   const sql = `
     SELECT 
       s.student_id,
       CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-      s.student_email AS student_email,
-      s.student_status AS student_status,
+      s.student_email,
+      s.student_status,
       GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses
     FROM students s
     LEFT JOIN enrollments e ON s.student_id = e.student_id
@@ -61,10 +83,41 @@ app.get('/api/students', async (req, res) => {
     const [rows] = await db.query(sql);
     res.json(rows);
   } catch (err) {
-    console.error('SQL ERROR:', err);
     res.status(500).json({ error: 'Database query failed' });
   }
 });
+app.get('/api/students/:id', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const [studentRows] = await db.query(
+      `SELECT student_id, student_email, student_status, first_name, last_name, phone, date_of_birth, address
+       FROM students WHERE student_id = ?`,
+      [id]
+    );
+
+    if (!studentRows.length) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    const [courses] = await db.query(
+      `SELECT c.course_id, c.course_name
+       FROM enrollments e
+       JOIN courses c ON e.course_id = c.course_id
+       WHERE e.student_id = ?`,
+      [id]
+    );
+
+    res.json({
+      ...studentRows[0],
+      courses
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 app.post('/api/students', async (req, res) => {
   const conn = await db.getConnection();
   try {
@@ -130,6 +183,44 @@ app.post('/api/students', async (req, res) => {
     res.status(500).json({ error: err.message });
   } finally {
     conn.release();
+  }
+});
+app.put('/api/students/:id', async (req, res) => {
+  const id = req.params.id;
+  const {
+    first_name,
+    last_name,
+    student_email,
+    phone,
+    address,
+    student_status
+  } = req.body;
+
+  try {
+    await db.query(
+      `UPDATE students SET
+        first_name = ?,
+        last_name = ?,
+        student_email = ?,
+        phone = ?,
+        address = ?,
+        student_status = ?
+       WHERE student_id = ?`,
+      [
+        first_name,
+        last_name,
+        student_email,
+        phone,
+        address,
+        student_status,
+        id
+      ]
+    );
+
+    res.json({ message: 'Student updated successfully' });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

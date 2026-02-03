@@ -1,0 +1,15 @@
+.details-row { background: #fff; }
+.details-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 320ms ease;
+  /* keep inner padding intact: use an inner wrapper .details-inner */
+}
+.details-panel .details-inner {
+  padding: 12px 20px;
+  box-sizing: border-box;
+}
+.details-panel.open {
+  /* while transitioning the max-height is set dynamically in TS.
+     This class only helps if you want different styles when open. */
+}

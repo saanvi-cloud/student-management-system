@@ -1,0 +1,44 @@
+<div class="p-10 max-w-2xl mx-auto" *ngIf="!loading">
+
+  <h2 class="text-2xl font-bold mb-6">Edit Student</h2>
+
+  <form (ngSubmit)="confirmUpdate()">
+
+    <label class="block mb-2">First Name</label>
+    <input class="input" [(ngModel)]="student.first_name" name="firstName" />
+
+    <label class="block mt-4 mb-2">Last Name</label>
+    <input class="input" [(ngModel)]="student.last_name" name="lastName" />
+
+    <label class="block mt-4 mb-2">Email</label>
+    <input class="input" [(ngModel)]="student.student_email" name="email" />
+
+    <label class="block mt-4 mb-2">Phone</label>
+    <input class="input" [(ngModel)]="student.phone" name="phone" />
+
+    <label class="block mt-4 mb-2">Address</label>
+    <textarea class="input" [(ngModel)]="student.address" name="address"></textarea>
+
+    <label class="block mt-4 mb-2">Status</label>
+    <select class="input" [(ngModel)]="student.student_status" name="status">
+      <option>Active</option>
+      <option>Inactive</option>
+      <option>Graduated</option>
+    </select>
+
+    <div class="flex gap-4 mt-6">
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">
+        Update
+      </button>
+
+      <button
+        type="button"
+        class="bg-gray-400 text-white px-4 py-2 rounded"
+        (click)="goBack()"
+      >
+        Cancel
+      </button>
+    </div>
+
+  </form>
+</div>

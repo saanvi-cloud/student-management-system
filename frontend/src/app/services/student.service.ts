@@ -1,24 +1,29 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject } from 'rxjs';
-import { Student } from '../models/student.model';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class StudentService {
+  private API = 'http://localhost:3000/api';
 
-  private apiUrl = 'http://localhost:3000/api/students';
-
-  private studentsSubject = new BehaviorSubject<Student[] | null>(null);
+  private studentsSubject = new BehaviorSubject<any[]>([]);
   students$ = this.studentsSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
   loadStudents(): void {
-    this.http.get<Student[]>(this.apiUrl).subscribe({
-      next: (data) => this.studentsSubject.next(data),
-      error: (err) => console.error(err)
-    });
+    this.http.get<any[]>(`${this.API}/students`)
+      .subscribe({
+        next: (data) => this.studentsSubject.next(data),
+        error: (err) => console.error(err)
+      });
   }
+
+  getStudentDetails(id: string): Observable<any> {
+    return this.http.get<any>(`${this.API}/students/${id}`);
+  }
+  updateStudent(id: string, data: any): Observable<any> {
+  return this.http.put(`${this.API}/students/${id}`, data);
+}
+
 }

@@ -6,11 +6,13 @@ import { AddStudentComponent } from './components/add-student/add-student';
 import { Grades } from './components/grades/grades';
 import { AttendanceComponent } from './components/attendance/attendance';
 import { SettingsComponent } from './components/system/system';
+import { EditStudent } from "./components/students/edit-student/edit-student";
 
 export const routes: Routes = [
   {path: '', redirectTo:'dashboard', pathMatch:'full'}, 
   {path: 'dashboard', component: Dashboard}, 
   {path: 'students', component: Students}, 
+  { path: 'students/edit/:id', component: EditStudent },
   {path: 'add-student', component: AddStudentComponent }, 
   {path: 'courses', component: Courses}, 
   {path: 'grades', component: Grades}, 
