@@ -186,41 +186,119 @@ app.post('/api/students', async (req, res) => {
   }
 });
 app.put('/api/students/:id', async (req, res) => {
-  const id = req.params.id;
-  const {
-    first_name,
-    last_name,
-    student_email,
-    phone,
-    address,
-    student_status
-  } = req.body;
+  const conn = await db.getConnection();
+  const studentId = req.params.id;
 
   try {
-    await db.query(
-      `UPDATE students SET
-        first_name = ?,
-        last_name = ?,
-        student_email = ?,
-        phone = ?,
-        address = ?,
-        student_status = ?
-       WHERE student_id = ?`,
+    await conn.beginTransaction();
+
+    const {
+      first_name,
+      last_name,
+      email,
+      phone,
+      date_of_birth,
+      address,
+      status,
+      course_ids
+    } = req.body;
+
+    // 1️⃣ Update student details
+    await conn.query(
+      `UPDATE students
+       SET first_name=?, last_name=?, student_email=?, phone=?, 
+           date_of_birth=?, address=?, student_status=?
+       WHERE student_id=?`,
       [
         first_name,
         last_name,
-        student_email,
+        email,
         phone,
+        date_of_birth,
         address,
-        student_status,
-        id
+        status,
+        studentId
       ]
     );
 
+    if (Array.isArray(course_ids)) {
+      await conn.query(
+        'DELETE FROM enrollments WHERE student_id=?',
+        [studentId]
+      );
+
+      for (const courseId of course_ids) {
+        await conn.query(
+          'INSERT INTO enrollments (student_id, course_id) VALUES (?, ?)',
+          [studentId, courseId]
+        );
+      }
+    }
+
+    await conn.commit();
     res.json({ message: 'Student updated successfully' });
 
   } catch (err) {
+    await conn.rollback();
     res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
+  }
+  console.log("PARAM:", req.params.id);
+  console.log("BODY:", req.body);
+});
+app.get('/api/courses/list', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT course_id, course_name FROM courses'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch courses' });
+  }
+});
+app.delete('/api/students/:id', async (req, res) => {
+  const conn = await db.getConnection();
+  const studentId = req.params.id;
+
+  try {
+    await conn.beginTransaction();
+
+    // Delete dependent records first
+    await conn.query(
+      'DELETE FROM attendance WHERE student_id = ?',
+      [studentId]
+    );
+
+    await conn.query(
+      'DELETE FROM grades WHERE student_id = ?',
+      [studentId]
+    );
+
+    await conn.query(
+      'DELETE FROM enrollments WHERE student_id = ?',
+      [studentId]
+    );
+
+    // Delete student
+    const [result] = await conn.query(
+      'DELETE FROM students WHERE student_id = ?',
+      [studentId]
+    );
+
+    if (result.affectedRows === 0) {
+      throw new Error('Student not found');
+    }
+
+    await conn.commit();
+    res.json({ message: 'Student deleted successfully' });
+
+  } catch (err) {
+    await conn.rollback();
+    console.error('DELETE STUDENT ERROR:', err);
+    res.status(500).json({ error: 'Failed to delete student' });
+  } finally {
+    conn.release();
   }
 });
 

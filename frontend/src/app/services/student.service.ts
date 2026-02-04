@@ -6,24 +6,24 @@ import { BehaviorSubject, Observable } from 'rxjs';
 export class StudentService {
   private API = 'http://localhost:3000/api';
 
-  private studentsSubject = new BehaviorSubject<any[]>([]);
-  students$ = this.studentsSubject.asObservable();
-
   constructor(private http: HttpClient) {}
 
-  loadStudents(): void {
-    this.http.get<any[]>(`${this.API}/students`)
-      .subscribe({
-        next: (data) => this.studentsSubject.next(data),
-        error: (err) => console.error(err)
-      });
+  getStudents(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API}/students`);
   }
 
   getStudentDetails(id: string): Observable<any> {
     return this.http.get<any>(`${this.API}/students/${id}`);
   }
-  updateStudent(id: string, data: any): Observable<any> {
-  return this.http.put(`${this.API}/students/${id}`, data);
-}
 
+  updateStudent(id: string, payload: any): Observable<any> {
+    return this.http.put(`${this.API}/students/${id}`, payload);
+  }
+
+  getAllCourses(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.API}/courses/list`);
+  }
+  deleteStudent(id: string) {
+    return this.http.delete(`${this.API}/students/${id}`);
+  }
 }

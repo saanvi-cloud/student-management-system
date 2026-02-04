@@ -27,18 +27,13 @@ export class Students implements OnInit {
     private router: Router) {}
 
   ngOnInit(): void {
-    this.students$ = this.studentService.students$;
     this.loadStudents();
   }
 
   //  required by template
   loadStudents(): void {
-    this.studentService.loadStudents();
+    this.students$ = this.studentService.getStudents();
   }
-
-  /* ==============================
-     VIEW / EXPAND LOGIC
-     ============================== */
 
   toggleView(studentId: string): void {
     if (this.expandedRows.has(studentId)) {
@@ -63,5 +58,21 @@ export class Students implements OnInit {
   editStudent(studentId: string) {
     console.log('Navigating to edit:', studentId);
     this.router.navigate(['/students/edit', studentId]);
+  }
+  
+  deleteStudent(studentId: string): void {
+    if (!confirm('Are you sure you want to delete this student?')) return;
+
+    this.studentService.deleteStudent(studentId)
+      .subscribe({
+        next: () => {
+          alert('Student deleted successfully');
+          this.loadStudents(); // refresh table
+        },
+        error: err => {
+          console.error(err);
+          alert('Failed to delete student');
+        }
+      });
   }
 }
