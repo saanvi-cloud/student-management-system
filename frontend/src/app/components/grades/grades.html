@@ -58,37 +58,104 @@
       <th class="table-cell">Actions</th>
     </thead>
 
-  <tbody>
-    <tr *ngFor="let g of filteredGrades">
-      <td class="py-4 pl-8">{{ g.student_id }}</td>
-      <td class="py-4 pl-8">{{ g.student_name }}</td>
-      <td class="py-4 pl-20">{{ g.course_name }}</td>
-      <td class="py-4 pl-20">{{ g.grade_numeric }}</td>
-      <td class="py-4 pl-18">{{ g.grade_letter }}</td>
-      <td class="py-4 pl-10">{{ g.performance }}</td>
-      <td class="flex items-center justify-center gap-2 px-4 py-4">
-        <button
-          class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md">
-          <i class="fa-solid fa-eye"></i> View
-        </button>
-        <button class="bg-orange-400 w-[80px] p-2 text-white border rounded-md btn btn-warning">
-          <i class="fa-solid fa-pen-to-square"></i>
-          Edit
-        </button>
-        <button
-            class="bg-red-600/80 w-[90px] p-2 text-white rounded-md">
-            <i class="fa-solid fa-trash"></i> Delete
-        </button>
-      </td>
-    </tr>
+    <tbody>
+      <ng-container *ngFor="let g of filteredGrades">
+        <tr>
+          <td class="py-4 pl-8">{{ g.student_id }}</td>
+          <td class="py-4 pl-8">{{ g.student_name }}</td>
+          <td class="py-4 pl-20">{{ g.course_name }}</td>
+          <td class="py-4 pl-20">{{ g.grade_numeric }}</td>
+          <td class="py-4 pl-18">{{ g.grade_letter }}</td>
+          <td class="py-4 pl-10">{{ g.performance }}</td>
+          <td class="flex items-center justify-center gap-2 px-4 py-4">
+            <button
+              class="bg-cyan-500/80 w-[80px] p-2 text-white border rounded-md"
+              (click)="toggleView(g)">
+              <i class="fa-solid fa-eye"></i> View
+            </button>
+            <button class="bg-orange-400 w-[80px] p-2 text-white border rounded-md btn btn-warning"
+            (click)="editGrade(g)">
+              <i class="fa-solid fa-pen-to-square"></i>
+              Edit
+            </button>
+            <button
+                class="bg-red-600/80 w-[90px] p-2 text-white rounded-md"
+                (click)="deleteGrade(g)">
+                <i class="fa-solid fa-trash"></i> Delete
+            </button>
+          </td>
+        </tr>
 
-    <tr *ngIf="filteredGrades.length === 0">
-      <td colspan="7" class="text-center text-slate-500 py-10">
-        No grades found.
-      </td>
-    </tr>
-  </tbody>
+        <tr *ngIf="isExpanded(g)">
+          <td colspan="7" class="bg-slate-100 px-8 py-6">
+            <div class="text-sm">
+              <p><strong>Instructor:</strong> {{ g.instructor }}</p>
+            </div>
+          </td>
+        </tr>
+      </ng-container>
+      <tr *ngIf="filteredGrades.length === 0">
+        <td colspan="7" class="text-center text-slate-500 py-10">
+          No grades found.
+        </td>
+      </tr>
+    </tbody>
   </table>
+  <div *ngIf="selectedGrade" 
+      class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+    <div class="bg-white p-6 rounded-lg w-[400px] shadow-lg relative">
+
+      <h3 class="text-xl font-bold mb-4">Instructor Details</h3>
+
+      <p class="mb-6">
+        <strong>Instructor:</strong> {{ selectedGrade.instructor }}
+      </p>
+
+      <button
+        class="bg-blue-600 text-white px-4 py-2 rounded-md w-full"
+        (click)="selectedGrade = null">
+        Close
+      </button>
+
+    </div>
+  </div>
+  <div *ngIf="editingGrade" class="modal bg-white p-6 shadow-lg rounded-md">
+    <h3 class="text-xl font-bold mb-4">Edit Grade</h3>
+
+    <p><strong>Student:</strong> {{ editingGrade.student_name }}</p>
+    <p><strong>Course:</strong> {{ editingGrade.course_name }}</p>
+
+    <div class="mt-4">
+      <label>Numeric Grade</label>
+      <input type="number"
+            [(ngModel)]="editingGrade.grade_numeric"
+            class="border p-2 w-full mb-3" />
+
+      <label>Letter Grade</label>
+      <input type="text"
+            [(ngModel)]="editingGrade.grade_letter"
+            class="border p-2 w-full mb-3" />
+
+      <label>Performance</label>
+      <input type="text"
+            [(ngModel)]="editingGrade.performance"
+            class="border p-2 w-full mb-4" />
+    </div>
+
+    <div class="flex gap-4">
+      <button class="bg-green-600 text-white px-4 py-2 rounded"
+              (click)="saveEdit()">
+        Save
+      </button>
+
+      <button class="bg-gray-400 text-white px-4 py-2 rounded"
+              (click)="cancelEdit()">
+        Cancel
+      </button>
+    </div>
+  </div>
+
 
   <div class="bg-slate-300/20 p-5 border border-slate-300 rounded-md">
     <h3 class="text-xl font-bold pb-5">Grade Distribution</h3>

@@ -449,17 +449,17 @@ app.post('/api/courses', async (req, res) => {
 app.get('/api/grades', async (req, res) => {
   const sql = `
   SELECT 
-    g.student_id, 
+    g.student_id,
     CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-    c.course_name, 
-    g.grade_numeric, 
-    g.grade_letter, 
-    g.performance 
+    c.course_name,
+    c.instructor,
+    g.course_id,
+    g.grade_numeric,
+    g.grade_letter,
+    g.performance
   FROM grades g
-  LEFT JOIN students s 
-    ON g.student_id = s.student_id 
-  LEFT JOIN courses c 
-    ON g.course_id = c.course_id;
+  LEFT JOIN students s ON g.student_id = s.student_id
+  LEFT JOIN courses c ON g.course_id = c.course_id;
 
   `;
   try {
@@ -468,6 +468,50 @@ app.get('/api/grades', async (req, res) => {
   }
   catch(err) {
     console.log('GRADES ERROR: ',err);
+    res.status(500).json(err);
+  }
+});
+app.put('/api/grades/:student_id/:course_id', async (req, res) => {
+  const { student_id, course_id } = req.params;
+  const { grade_numeric, grade_letter, performance } = req.body;
+
+  const sql = `
+    UPDATE grades
+    SET grade_numeric = ?, grade_letter = ?, performance = ?
+    WHERE student_id = ? AND course_id = ?
+  `;
+
+  try {
+    await db.query(sql, [
+      grade_numeric,
+      grade_letter,
+      performance,
+      student_id,
+      course_id
+    ]);
+
+    res.json({ message: 'Grade updated successfully' });
+  } catch (err) {
+    console.log('UPDATE ERROR:', err);
+    res.status(500).json(err);
+  }
+});
+app.delete('/api/grades/:student_id/:course_id', async (req, res) => {
+  const { student_id, course_id } = req.params;
+
+  const sql = `
+    UPDATE grades
+    SET grade_numeric = NULL,
+        grade_letter = NULL,
+        performance = NULL
+    WHERE student_id = ? AND course_id = ?
+  `;
+
+  try {
+    await db.query(sql, [student_id, course_id]);
+    res.json({ message: 'Grade cleared successfully' });
+  } catch (err) {
+    console.log('DELETE ERROR:', err);
     res.status(500).json(err);
   }
 });

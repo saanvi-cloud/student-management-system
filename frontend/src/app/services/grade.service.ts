@@ -19,4 +19,19 @@ export class GradeService {
       error: (err) => console.error('Grades error:', err)
     });
   }
+  updateGrade(grade: Grade) {
+    return this.http.put(
+      `http://localhost:3000/api/grades/${grade.student_id}/${grade.course_id}`,
+      {
+        grade_numeric: grade.grade_numeric,
+        grade_letter: grade.grade_letter,
+        performance: grade.performance
+      }
+    );
+  }
+  deleteGrade(studentId: string, courseId: string) {
+    return this.http.delete(
+      `http://localhost:3000/api/grades/${studentId}/${courseId}`
+    );
+  }
 }

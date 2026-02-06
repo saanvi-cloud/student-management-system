@@ -5,4 +5,6 @@ export interface Grade {
   grade_numeric: number, 
   grade_letter: string, 
   performance: string, 
+  instructor: string; 
+  course_id: string;
 }
