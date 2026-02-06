@@ -1,1 +1,42 @@
-<p>add-course works!</p>
+<div class="p-10 max-w-2xl mx-auto">
+  <h2 class="text-2xl font-bold mb-6">Add Course</h2>
+
+  <form (ngSubmit)="addCourse()" #courseForm="ngForm">
+
+    <label class="block mb-2">Course ID</label>
+    <input
+      class="input"
+      [(ngModel)]="course.course_id"
+      name="course_id"
+      required
+    />
+
+    <label class="block mt-4 mb-2">Course Name</label>
+    <input
+      class="input"
+      [(ngModel)]="course.course_name"
+      name="course_name"
+      required
+    />
+
+    <label class="block mt-4 mb-2">Instructor</label>
+    <input
+      class="input"
+      [(ngModel)]="course.instructor"
+      name="instructor"
+      required
+    />
+
+    <label class="block mt-4 mb-2">Schedule</label>
+    <input
+      class="input"
+      [(ngModel)]="course.schedule"
+      name="schedule"
+      required
+    />
+
+    <button class="bg-green-600 text-white px-4 py-2 rounded mt-6">
+      Save
+    </button>
+  </form>
+</div>

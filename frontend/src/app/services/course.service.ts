@@ -36,4 +36,8 @@ export class CourseService {
   deleteCourse(courseId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${courseId}`);
   }
+
+  createCourse(data: any) {
+    return this.http.post(this.apiUrl, data);
+  }
 }

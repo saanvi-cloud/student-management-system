@@ -6,6 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+//Dashboard
 app.get('/api/dashboard', async (req, res) => {
   try {
     // Top performing students
@@ -65,6 +66,8 @@ app.get('/api/dashboard', async (req, res) => {
 //     res.status(500).json({ error: 'Database query failed' });
 //   }
 // });
+
+//Students
 app.get('/api/students', async (req, res) => {
   const sql = `
     SELECT 
@@ -425,7 +428,24 @@ app.use((req, res, next) => {
   console.log("Incoming request:", req.method, req.url);
   next();
 });
+app.post('/api/courses', async (req, res) => {
+  const { course_id, course_name, instructor, schedule } = req.body;
 
+  try {
+    await db.query(
+      'INSERT INTO courses (course_id, course_name, instructor, schedule) VALUES (?, ?, ?, ?)',
+      [course_id, course_name, instructor, schedule]
+    );
+
+    res.json({ message: 'Course added successfully' });
+
+  } catch (err) {
+    console.error('ADD COURSE ERROR:', err);
+    res.status(500).json(err);
+  }
+});
+
+//Grades
 app.get('/api/grades', async (req, res) => {
   const sql = `
   SELECT 
@@ -453,6 +473,7 @@ app.get('/api/grades', async (req, res) => {
   }
 });
 
+//Attendance
 app.get('/api/attendance', async (req, res) => {
   const sql = `
   SELECT 
@@ -480,6 +501,7 @@ app.get('/api/attendance', async (req, res) => {
   }
 });
 
+//Settings
 app.get('/api/settings', async (req, res) => {
   try {
     const [institution] = await db.query('SELECT * FROM institution LIMIT 1');
