@@ -454,8 +454,7 @@ app.get('/api/grades', async (req, res) => {
     c.course_name, 
     g.grade_numeric, 
     g.grade_letter, 
-    g.performance, 
-    g.actions
+    g.performance 
   FROM grades g
   LEFT JOIN students s 
     ON g.student_id = s.student_id 

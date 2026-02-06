@@ -5,5 +5,4 @@ export interface Grade {
   grade_numeric: number, 
   grade_letter: string, 
   performance: string, 
-  actions: string
 }
