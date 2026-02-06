@@ -7,6 +7,7 @@ import { Grades } from './components/grades/grades';
 import { AttendanceComponent } from './components/attendance/attendance';
 import { SettingsComponent } from './components/system/system';
 import { EditStudent } from "./components/students/edit-student/edit-student";
+import { EditCourseComponent } from "./pages/edit-course/edit-course";
 
 export const routes: Routes = [
   {path: '', redirectTo:'dashboard', pathMatch:'full'}, 
@@ -15,6 +16,7 @@ export const routes: Routes = [
   { path: 'students/edit/:id', component: EditStudent },
   {path: 'add-student', component: AddStudentComponent }, 
   {path: 'courses', component: Courses}, 
+  {path: 'courses/edit/:id', component: EditCourseComponent}, 
   {path: 'grades', component: Grades}, 
   {path: 'attendance', component: AttendanceComponent}, 
   {path: 'system', component: SettingsComponent}, 

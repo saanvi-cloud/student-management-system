@@ -302,6 +302,7 @@ app.delete('/api/students/:id', async (req, res) => {
   }
 });
 
+//Courses
 app.get('/api/courses', async (req, res) => {
   const sql = `
   SELECT 
@@ -328,6 +329,101 @@ app.get('/api/courses', async (req, res) => {
     console.log('COURSES ERROR: ', err);
     res.status(500).json(err);
   }
+});
+app.get('/api/courses/:id/students', async (req, res) => {
+  const courseId = req.params.id;
+
+  const sql = `
+    SELECT
+      s.student_id,
+      CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+      g.grade_numeric,
+      ROUND(
+        (a.present / NULLIF(a.total_classes, 0)) * 100, 2
+      ) AS attendance_rate
+    FROM enrollments e
+    JOIN students s ON e.student_id = s.student_id
+    LEFT JOIN grades g 
+      ON g.student_id = s.student_id AND g.course_id = e.course_id
+    LEFT JOIN attendance a
+      ON a.student_id = s.student_id AND a.course_id = e.course_id
+    WHERE e.course_id = ?;
+  `;
+
+  try {
+    const [rows] = await db.query(sql, [courseId]);
+    res.json(rows);
+  } catch (err) {
+    console.error('COURSE STUDENTS ERROR:', err);
+    res.status(500).json({ error: 'Failed to fetch course students' });
+  }
+});
+app.put('/api/courses/:id', async (req, res) => {
+  const { id } = req.params;
+  const { course_name, instructor, schedule } = req.body;
+
+  try {
+    await db.query(
+      `UPDATE courses 
+       SET course_name = ?, instructor = ?, schedule = ?
+       WHERE course_id = ?`,
+      [course_name, instructor, schedule, id]
+    );
+
+    res.json({ message: 'Course updated successfully' });
+  } catch (err) {
+    console.error('UPDATE COURSE ERROR:', err);
+    res.status(500).json(err);
+  }
+});
+app.get('/api/courses/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [rows] = await db.query(
+      'SELECT course_id, course_name, instructor, schedule FROM courses WHERE course_id = ?',
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error('GET COURSE ERROR:', err);
+    res.status(500).json(err);
+  }
+});
+app.delete('/api/courses/:course_id', async (req, res) => {
+  const { course_id } = req.params;
+
+  try {
+    // 1️⃣ Delete dependent records first
+    await db.query('DELETE FROM attendance WHERE course_id = ?', [course_id]);
+    await db.query('DELETE FROM grades WHERE course_id = ?', [course_id]);
+    await db.query('DELETE FROM enrollments WHERE course_id = ?', [course_id]);
+
+    // 2️⃣ Now delete course
+    const [result] = await db.query(
+      'DELETE FROM courses WHERE course_id = ?',
+      [course_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    res.json({ message: 'Course deleted successfully' });
+
+  } catch (err) {
+    console.error('DELETE COURSE ERROR:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+app.use((req, res, next) => {
+  console.log("Incoming request:", req.method, req.url);
+  next();
 });
 
 app.get('/api/grades', async (req, res) => {

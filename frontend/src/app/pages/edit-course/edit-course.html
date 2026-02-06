@@ -1,0 +1,63 @@
+<div class="p-10 max-w-xl mx-auto">
+  <h2 class="text-2xl font-bold mb-6">Edit Course</h2>
+
+  <form (ngSubmit)="updateCourse()" #courseForm="ngForm">
+
+    <!-- Course ID (READ ONLY) -->
+    <div class="mb-4">
+      <label class="block font-semibold mb-1">Course ID</label>
+      <input
+        class="w-full border p-2 rounded bg-gray-100"
+        [value]="course.course_id"
+        disabled
+      />
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-semibold mb-1">Course Name</label>
+      <input
+        class="w-full border p-2 rounded"
+        [(ngModel)]="course.course_name"
+        name="course_name"
+        required
+      />
+    </div>
+
+    <div class="mb-4">
+      <label class="block font-semibold mb-1">Instructor</label>
+      <input
+        class="w-full border p-2 rounded"
+        [(ngModel)]="course.instructor"
+        name="instructor"
+        required
+      />
+    </div>
+
+    <div class="mb-6">
+      <label class="block font-semibold mb-1">Schedule</label>
+      <input
+        class="w-full border p-2 rounded"
+        [(ngModel)]="course.schedule"
+        name="schedule"
+        required
+      />
+    </div>
+
+    <div class="flex gap-4">
+      <button
+        type="submit"
+        class="bg-blue-600 text-white px-6 py-2 rounded"
+      >
+        Save
+      </button>
+
+      <button
+        type="button"
+        class="bg-gray-400 text-white px-6 py-2 rounded"
+        (click)="goBack()"
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
