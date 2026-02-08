@@ -7,4 +7,5 @@ export interface Attendance {
   present: number; 
   absent: number; 
   attendance_status: string;
+  status?: string;
 }

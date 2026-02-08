@@ -9,6 +9,7 @@ import { SettingsComponent } from './components/system/system';
 import { EditStudent } from "./components/students/edit-student/edit-student";
 import { EditCourseComponent } from "./pages/edit-course/edit-course";
 import { AddCourseComponent } from "./pages/add-course/add-course";
+import { AttendanceMark } from "./components/attendance-mark/attendance-mark";
 
 export const routes: Routes = [
   {path: '', redirectTo:'dashboard', pathMatch:'full'}, 
@@ -20,7 +21,8 @@ export const routes: Routes = [
   {path: 'courses/edit/:id', component: EditCourseComponent},
   {path: 'courses/add', component: AddCourseComponent }, 
   {path: 'grades', component: Grades}, 
-  {path: 'attendance', component: AttendanceComponent}, 
+  {path: 'attendance', component: AttendanceComponent},
+  {path: 'attendance-mark', component: AttendanceMark}, 
   {path: 'system', component: SettingsComponent}, 
   {path: '**', redirectTo: 'dashboard', pathMatch:'full'}
 ];

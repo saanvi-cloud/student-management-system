@@ -6,6 +6,37 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+//Header
+app.get('/api/dashboard/stats', async (req, res) => {
+  try {
+
+    // Total Students
+    const [totalStudents] = await db.query(
+      `SELECT COUNT(*) AS total FROM students`
+    );
+
+    // Active Students
+    const [activeStudents] = await db.query(
+      `SELECT COUNT(*) AS active FROM students WHERE student_status = 'Active'`
+    );
+
+    // Average Grade (assuming grades table has grade column)
+    const [avgGrade] = await db.query(
+      `SELECT ROUND(AVG(grade), 2) AS average FROM grades`
+    );
+
+    res.json({
+      total_students: totalStudents[0].total,
+      active_students: activeStudents[0].active,
+      average_grade: avgGrade[0].average || 0
+    });
+
+  } catch (err) {
+    console.log("Dashboard Stats Error:", err);
+    res.status(500).json(err);
+  }
+});
+
 //Dashboard
 app.get('/api/dashboard', async (req, res) => {
   try {
@@ -518,31 +549,106 @@ app.delete('/api/grades/:student_id/:course_id', async (req, res) => {
 
 //Attendance
 app.get('/api/attendance', async (req, res) => {
-  const sql = `
-  SELECT 
-    a.student_id, 
-    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-    c.course_name, 
-    a.attendance_rate, 
-    a.total_classes, 
-    a.present, 
-    a.absent, 
-    a.attendance_status
-  FROM attendance a
-  LEFT JOIN students s 
-    ON s.student_id = a.student_id
-  LEFT JOIN courses c 
-    ON c.course_id = a.course_id;
-    `;
-  try {
-    const [attendance] = await db.query(sql);
-    res.json(attendance);
+
+  const { course } = req.query;
+
+  let sql = `
+    SELECT 
+      a.student_id, 
+      CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+      c.course_name, 
+      a.attendance_rate, 
+      a.total_classes, 
+      a.present, 
+      a.absent, 
+      a.attendance_status
+    FROM attendance a
+    LEFT JOIN students s 
+      ON s.student_id = a.student_id
+    LEFT JOIN courses c 
+      ON c.course_id = a.course_id
+  `;
+
+  let values = [];
+
+  if (course && course !== 'Select a course') {
+    sql += ` WHERE c.course_name = ?`;
+    values.push(course);
   }
-  catch(err) {
+
+  try {
+    const [attendance] = await db.query(sql, values);
+    res.json(attendance);
+  } catch (err) {
     console.log('ATTENDANCE ERROR: ', err);
     res.status(500).json(err);
   }
 });
+app.post('/api/attendance/mark', async (req, res) => {
+  const { course_id, date, records } = req.body;
+
+  try {
+    for (const record of records) {
+      await db.query(
+        `INSERT INTO attendance_records (student_id, course_id, date, status)
+         VALUES (?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE status = VALUES(status)`,
+        [record.student_id, course_id, date, record.status]
+      );
+    }
+
+    res.json({ message: "Attendance saved successfully" });
+  } catch (err) {
+    console.log("MARK ERROR:", err);
+    res.status(500).json(err);
+  }
+});
+app.get('/api/attendance/mark', async (req, res) => {
+  const sql = `
+  SELECT 
+    s.student_id,
+    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+    c.course_id,
+    c.course_name
+  FROM enrollments e
+  JOIN students s ON e.student_id = s.student_id
+  JOIN courses c ON e.course_id = c.course_id;`;
+  const [rows] = await db.query(sql);
+  res.json(rows);
+});
+app.get('/api/attendance/marking-list', async (req, res) => {
+  const sql = `
+    SELECT 
+      s.student_id,
+      CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+      c.course_id,
+      c.course_name
+    FROM students s
+    JOIN enrollments e ON s.student_id = e.student_id
+    JOIN courses c ON c.course_id = e.course_id
+  `;
+
+  const [rows] = await db.query(sql);
+  res.json(rows);
+});
+app.get('/api/courses', async (req, res) => {
+  const [rows] = await db.query("SELECT course_id, course_name FROM courses");
+  res.json(rows);
+});
+app.get('/api/attendance/students', async (req, res) => {
+  const { course_id } = req.query;
+
+  const [rows] = await db.query(`
+    SELECT s.student_id,
+           CONCAT(s.first_name, ' ', s.last_name) AS student_name
+    FROM enrollments e
+    JOIN students s ON s.student_id = e.student_id
+    WHERE e.course_id = ?
+  `, [course_id]);
+
+  res.json(rows);
+});
+
 
 //Settings
 app.get('/api/settings', async (req, res) => {

@@ -1,0 +1,81 @@
+<div class="p-10">
+
+  <h1 class="text-3xl font-bold mb-6">Mark Attendance</h1>
+
+  <!-- Course Selection -->
+  <div class="mb-6">
+    <label class="block font-semibold mb-2">Select Course</label>
+    <select
+      [(ngModel)]="selectedCourse"
+      (change)="loadStudents()"
+      class="p-3 border rounded-md w-64"
+    >
+      <option value="">Select a course</option>
+      <option *ngFor="let c of courses" [value]="c.course_id">
+        {{ c.course_name }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Date Selection -->
+  <div class="mb-6">
+    <label class="block font-semibold mb-2">Select Date</label>
+    <input
+      type="date"
+      [(ngModel)]="selectedDate"
+      (change)="loadStudents()"
+      class="p-3 border rounded-md w-64 text-lg"
+    />
+  </div>
+
+  <!-- Student Table -->
+  <table *ngIf="students.length > 0" class="w-full mt-6">
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Attendance</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let s of students">
+        <td>{{ s.student_name }}</td>
+
+        <td class="flex gap-3">
+          <button
+            class="px-3 py-1 rounded"
+            [ngClass]="{
+              'bg-green-500 text-white': s.status === 'Present',
+              'bg-gray-200': s.status !== 'Present'
+            }"
+            (click)="mark(s, 'Present')"
+          >
+            Present
+          </button>
+
+          <button
+            class="px-3 py-1 rounded"
+            [ngClass]="{
+              'bg-red-500 text-white': s.status === 'Absent',
+              'bg-gray-200': s.status !== 'Absent'
+            }"
+            (click)="mark(s, 'Absent')"
+          >
+            Absent
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Save Button -->
+  <div *ngIf="students.length > 0" class="mt-6">
+    <button
+      class="bg-blue-600 text-white px-6 py-3 rounded-md"
+      (click)="saveAttendance()"
+    >
+      Save Attendance
+    </button>
+  </div>
+
+</div>

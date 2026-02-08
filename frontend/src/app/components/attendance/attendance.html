@@ -4,7 +4,10 @@
       <i class="fa-solid fa-calendar-check mr-2"></i>
       <h1>Attendance Tracking</h1>
     </div>
-    <button class="text-white bg-blue-600 ml-auto border border-slate-300 rounded-md p-3 cursor-pointer">
+    <button
+      class="text-white bg-blue-600 ml-auto border border-slate-300 rounded-md p-3 cursor-pointer"
+      (click)="openMarkAttendance()"
+    >
       <i class="fa-solid fa-circle-check"></i>
       Mark today's attendance
     </button>
@@ -21,8 +24,11 @@
 
       <div class="w-full">
         <h4 class="p-2">Filter by course</h4>
-        <select class="p-2 w-full border border-slate-300 rounded-md">
-          <option>Select a course</option>
+        <select 
+          class="p-2 w-full border border-slate-300 rounded-md"
+          (change)="onCourseChange($event)"
+        >
+          <option value="">Select a course</option>
           <option>Computer Science</option>
           <option>Business Administration</option>
           <option>Engineering</option>
@@ -45,7 +51,7 @@
       <th class="table-cell">Status</th>
     </thead>
 
-    <tbody *ngIf="attendance$ | async as attendance; else loading" class="text-[15px]">
+    <tbody *ngIf="attendance$ | async as attendance; else loading">
       <tr *ngFor="let a of attendance" class="border-b border-slate-300">
         <td class="py-4 pl-12">{{ a.student_id }}</td>
         <td class="py-4 pl-14">{{ a.student_name }}</td>
@@ -54,6 +60,12 @@
         <td class="py-4 pl-18">{{ a.total_classes }}</td>
         <td class="py-4 pl-10">{{ a.present }}</td>
         <td class="py-4 pl-10">{{ a.absent }}</td>
+        <!-- <td class="py-4 pl-10">
+          <select [(ngModel)]="a.status" class="border rounded px-2 py-1">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+          </select>
+        </td> -->
         <td class="py-4 px-4 text-center">
           <span
             class="px-3 py-1 rounded-xl"
@@ -92,9 +104,7 @@
   </div>
 </div>
 <ng-template #loading>
-  <tr>
-    <td colspan="8" class="text-center text-slate-500 py-10">
-      Loading attendance records...
-    </td>
-  </tr>
+  <div class="text-center text-slate-500 py-10">
+    Loading attendance records...
+  </div>
 </ng-template>
