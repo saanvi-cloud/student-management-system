@@ -1,7 +1,9 @@
 export interface DashboardStats {
   totalStudents: number;
+  activeStudents: number;
   totalCourses: number;
   totalGrades: number;
+  averageGrade: number;
 }
 
 export interface TopStudent {

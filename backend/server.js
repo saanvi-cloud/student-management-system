@@ -6,37 +6,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-//Header
-app.get('/api/dashboard/stats', async (req, res) => {
-  try {
-
-    // Total Students
-    const [totalStudents] = await db.query(
-      `SELECT COUNT(*) AS total FROM students`
-    );
-
-    // Active Students
-    const [activeStudents] = await db.query(
-      `SELECT COUNT(*) AS active FROM students WHERE student_status = 'Active'`
-    );
-
-    // Average Grade (assuming grades table has grade column)
-    const [avgGrade] = await db.query(
-      `SELECT ROUND(AVG(grade), 2) AS average FROM grades`
-    );
-
-    res.json({
-      total_students: totalStudents[0].total,
-      active_students: activeStudents[0].active,
-      average_grade: avgGrade[0].average || 0
-    });
-
-  } catch (err) {
-    console.log("Dashboard Stats Error:", err);
-    res.status(500).json(err);
-  }
-});
-
 //Dashboard
 app.get('/api/dashboard', async (req, res) => {
   try {
@@ -60,8 +29,10 @@ app.get('/api/dashboard', async (req, res) => {
     const [[stats]] = await db.query(`
       SELECT
         (SELECT COUNT(*) FROM students) AS totalStudents,
+        (SELECT COUNT(*) FROM students WHERE student_status = 'Active') AS activeStudents,
         (SELECT COUNT(*) FROM courses) AS totalCourses,
-        (SELECT COUNT(*) FROM grades) AS totalGrades
+        (SELECT COUNT(*) FROM grades) AS totalGrades,
+        (SELECT ROUND(AVG(grade_numeric),2) FROM grades) AS averageGrade
     `);
 
     res.json({
@@ -74,29 +45,43 @@ app.get('/api/dashboard', async (req, res) => {
     res.status(500).json({ error: 'Dashboard data failed' });
   }
 });
-
-// app.get('/api/students', async (req, res) => {
-//   const sql = `
+// app.get('/api/dashboard', async (req, res) => {
+//   try {
+//     // Top performing students
+//     const [topStudents] = await db.query(`
 //     SELECT 
 //       s.student_id,
-//       CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-//       s.student_email AS student_email,
-//       s.student_status AS student_status,
-//       GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses
+//       CONCAT(s.first_name, ' ', s.last_name) AS name,
+//       GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS course,
+//       COALESCE(ROUND(AVG(g.grade_numeric), 2), 0) AS grade,
+//       s.student_status AS status
 //     FROM students s
-//     LEFT JOIN enrollments e ON s.student_id = e.student_id
-//     LEFT JOIN courses c ON e.course_id = c.course_id
-//     GROUP BY s.student_id;
-//   `;
+//     LEFT JOIN grades g ON s.student_id = g.student_id
+//     LEFT JOIN courses c ON g.course_id = c.course_id
+//     GROUP BY s.student_id
+//     ORDER BY grade DESC
+//     LIMIT 5;
+//     `);
 
-//   try {
-//     const [rows] = await db.query(sql);
-//     res.json(rows);
+//     // Dashboard stats
+//     const [[stats]] = await db.query(`
+//       SELECT
+//         (SELECT COUNT(*) FROM students) AS totalStudents,
+//         (SELECT COUNT(*) FROM courses) AS totalCourses,
+//         (SELECT COUNT(*) FROM grades) AS totalGrades
+//     `);
+
+//     res.json({
+//       stats,
+//       topStudents
+//     });
+
 //   } catch (err) {
-//     console.error('SQL ERROR:', err);
-//     res.status(500).json({ error: 'Database query failed' });
+//     console.error('DASHBOARD ERROR:', err);
+//     res.status(500).json({ error: 'Dashboard data failed' });
 //   }
 // });
+
 
 //Students
 app.get('/api/students', async (req, res) => {
@@ -106,10 +91,12 @@ app.get('/api/students', async (req, res) => {
       CONCAT(s.first_name, ' ', s.last_name) AS student_name,
       s.student_email,
       s.student_status,
-      GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses
+      GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses,
+      COALESCE(ROUND(AVG(g.grade_numeric), 2), 0) AS grade_numeric
     FROM students s
     LEFT JOIN enrollments e ON s.student_id = e.student_id
     LEFT JOIN courses c ON e.course_id = c.course_id
+    LEFT JOIN grades g ON s.student_id = g.student_id
     GROUP BY s.student_id;
   `;
 

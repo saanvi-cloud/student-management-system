@@ -14,15 +14,15 @@ import { DashboardStats, TopStudent, DashboardResponse } from '../../models/dash
 export class Dashboard implements OnInit {
 
   tops: TopStudent[] = [];
+  stats!: DashboardStats;
 
   constructor(private dashboardService: DashboardService) {}
 
   ngOnInit() {
-    console.log('Dashboard component initialized');
     this.dashboardService.getDashboardData().subscribe({
       next: data => {
-        console.log('Dashboard API response:', data);
         this.tops = data.topStudents;
+        this.stats = data.stats;
       },
       error: err => console.error(err)
     });
