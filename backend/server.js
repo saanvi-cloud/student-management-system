@@ -6,6 +6,73 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+//Login
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  const [rows] = await db.query(
+    'SELECT * FROM users WHERE email = ?',
+    [email]
+  );
+
+  if (rows.length === 0) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  const user = rows[0];
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  const token = jwt.sign(
+    { id: user.id },
+    'secretKey',
+    { expiresIn: '1h' }
+  );
+
+  res.json({ token, logId });
+  const now = new Date();
+
+  const [result] = await db.execute(
+    "INSERT INTO login_logs (user_email, login_time) VALUES (?, ?)",
+    [email, now]
+  );
+
+  // Get inserted log id
+  const logId = result.insertId;
+});
+app.post('/logout', async (req, res) => {
+  const { logId } = req.body;
+
+  const now = new Date();
+
+  // Get login_time first
+  const [rows] = await db.execute(
+    "SELECT login_time FROM login_logs WHERE id = ?",
+    [logId]
+  );
+
+  if (!rows.length) {
+    return res.status(400).json({ message: "Invalid logId" });
+  }
+
+  const loginTime = new Date(rows[0].login_time);
+  const duration = Math.floor((now - loginTime) / 1000); // seconds
+
+  await db.execute(
+    "UPDATE login_logs SET logout_time = ?, session_duration = ? WHERE id = ?",
+    [now, duration, logId]
+  );
+
+  res.json({ message: "Logged out successfully" });
+});
+
 //Dashboard
 app.get('/api/dashboard', async (req, res) => {
   try {

@@ -1,11 +1,19 @@
-<app-header></app-header>
+<ng-container *ngIf="auth.isLoggedIn() && !isLoginPage(); else loginLayout">
 
-<div class="bg-slate-300/20 flex min-h-screen">
-  <aside class="w-[280px] h-[480px] bg-white mt-12 rounded-2xl p-5 shadow-md">
-    <app-navbar></app-navbar>
-  </aside>
+  <app-header></app-header>
 
-  <main class="bg-white mt-12 mx-6 p-2 rounded-2xl flex-1 overflow-auto">
-    <router-outlet></router-outlet>
-  </main>
-</div>
+  <div class="bg-slate-300/20 flex min-h-screen">
+    <aside class="w-[280px] h-[480px] bg-white mt-12 rounded-2xl p-5 shadow-md">
+      <app-navbar></app-navbar>
+    </aside>
+
+    <main class="bg-white mt-12 mx-6 p-2 rounded-2xl flex-1 overflow-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+</ng-container>
+
+<ng-template #loginLayout>
+  <router-outlet></router-outlet>
+</ng-template>

@@ -10,19 +10,23 @@ import { EditStudent } from "./components/students/edit-student/edit-student";
 import { EditCourseComponent } from "./pages/edit-course/edit-course";
 import { AddCourseComponent } from "./pages/add-course/add-course";
 import { AttendanceMark } from "./components/attendance-mark/attendance-mark";
+import { AuthGuard } from "./auth/auth-guard";
+import { LoginComponent } from "./auth/login/login";
 
 export const routes: Routes = [
-  {path: '', redirectTo:'dashboard', pathMatch:'full'}, 
-  {path: 'dashboard', component: Dashboard}, 
-  {path: 'students', component: Students}, 
-  { path: 'students/edit/:id', component: EditStudent },
-  {path: 'add-student', component: AddStudentComponent }, 
-  {path: 'courses', component: Courses}, 
-  {path: 'courses/edit/:id', component: EditCourseComponent},
-  {path: 'courses/add', component: AddCourseComponent }, 
-  {path: 'grades', component: Grades}, 
-  {path: 'attendance', component: AttendanceComponent},
-  {path: 'attendance-mark', component: AttendanceMark}, 
-  {path: 'system', component: SettingsComponent}, 
-  {path: '**', redirectTo: 'dashboard', pathMatch:'full'}
+
+  { path: 'login', component: LoginComponent },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard] },
+  { path: 'students', component: Students, canActivate: [AuthGuard] },
+  { path: 'students/edit/:id', component: EditStudent, canActivate: [AuthGuard] },
+  { path: 'add-student', component: AddStudentComponent, canActivate: [AuthGuard] },
+  { path: 'courses', component: Courses, canActivate: [AuthGuard] },
+  { path: 'courses/edit/:id', component: EditCourseComponent, canActivate: [AuthGuard] },
+  { path: 'courses/add', component: AddCourseComponent, canActivate: [AuthGuard] },
+  { path: 'grades', component: Grades, canActivate: [AuthGuard] },
+  { path: 'attendance', component: AttendanceComponent, canActivate: [AuthGuard] },
+  { path: 'attendance-mark', component: AttendanceMark, canActivate: [AuthGuard] },
+  { path: 'system', component: SettingsComponent, canActivate: [AuthGuard] },
+  { path: '**', redirectTo: 'login' }
 ];
