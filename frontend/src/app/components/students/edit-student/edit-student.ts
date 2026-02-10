@@ -66,11 +66,11 @@ export class EditStudent implements OnInit {
     const payload = {
       first_name: this.student.first_name,
       last_name: this.student.last_name,
-      email: this.student.student_email,      // ✅ mapping fixed
+      email: this.student.student_email,      // mapping fixed
       phone: this.student.phone,
       date_of_birth: this.student.date_of_birth,
       address: this.student.address,
-      status: this.student.student_status,    // ✅ mapping fixed
+      status: this.student.student_status,    // mapping fixed
       course_ids: Array.from(this.selectedCourses)
     };
 

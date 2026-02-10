@@ -10,71 +10,108 @@ app.use(express.json());
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Access token missing' });
+  }
+
+  jwt.verify(token, 'secretKey', (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+
+    req.user = user;
+    next();
+  });
+}
+
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const [rows] = await db.query(
-    'SELECT * FROM users WHERE email = ?',
-    [email]
-  );
+    const [rows] = await db.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
 
-  if (rows.length === 0) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+    if (rows.length === 0) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const user = rows[0];
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id },
+      'secretKey',
+      { expiresIn: '1h' }
+    );
+
+    // Insert login log FIRST
+    const now = new Date();
+
+    const [result] = await db.execute(
+      "INSERT INTO login_logs (user_email, login_time, user_id) VALUES (?, ?, ?)",
+      [email, now, user.id]
+    );
+
+    const logId = result.insertId;
+
+    
+    res.json({ token, logId });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
-
-  const user = rows[0];
-
-  const isMatch = await bcrypt.compare(password, user.password);
-
-  if (!isMatch) {
-    return res.status(401).json({ message: 'Invalid credentials' });
-  }
-
-  const token = jwt.sign(
-    { id: user.id },
-    'secretKey',
-    { expiresIn: '1h' }
-  );
-
-  res.json({ token, logId });
-  const now = new Date();
-
-  const [result] = await db.execute(
-    "INSERT INTO login_logs (user_email, login_time) VALUES (?, ?)",
-    [email, now]
-  );
-
-  // Get inserted log id
-  const logId = result.insertId;
 });
-app.post('/logout', async (req, res) => {
-  const { logId } = req.body;
+app.post('/api/auth/logout', async (req, res) => {
+  try {
+    const { logId } = req.body;
+    console.log("Logout body:", req.body);
 
-  const now = new Date();
+    if (!logId) {
+      return res.status(400).json({ message: "logId missing" });
+    }
 
-  // Get login_time first
-  const [rows] = await db.execute(
-    "SELECT login_time FROM login_logs WHERE id = ?",
-    [logId]
-  );
+    const now = new Date();
 
-  if (!rows.length) {
-    return res.status(400).json({ message: "Invalid logId" });
+    const [rows] = await db.execute(
+      "SELECT login_time FROM login_logs WHERE id = ?",
+      [logId]
+    );
+
+    if (!rows.length) {
+      return res.status(400).json({ message: "Invalid logId" });
+    }
+
+    const loginTime = new Date(rows[0].login_time);
+    const duration = Math.floor((now - loginTime) / 1000);
+
+    await db.execute(
+      "UPDATE login_logs SET logout_time = ?, session_duration = ? WHERE id = ?",
+      [now, duration, logId]
+    );
+
+    res.json({ message: "Logged out successfully" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
-
-  const loginTime = new Date(rows[0].login_time);
-  const duration = Math.floor((now - loginTime) / 1000); // seconds
-
-  await db.execute(
-    "UPDATE login_logs SET logout_time = ?, session_duration = ? WHERE id = ?",
-    [now, duration, logId]
-  );
-
-  res.json({ message: "Logged out successfully" });
 });
 
 //Dashboard
-app.get('/api/dashboard', async (req, res) => {
+app.get('/api/dashboard', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
   try {
     // Top performing students
     const [topStudents] = await db.query(`
@@ -87,20 +124,21 @@ app.get('/api/dashboard', async (req, res) => {
     FROM students s
     LEFT JOIN grades g ON s.student_id = g.student_id
     LEFT JOIN courses c ON g.course_id = c.course_id
+    WHERE s.user_id = ?
     GROUP BY s.student_id
     ORDER BY grade DESC
     LIMIT 5;
-    `);
+    `, [userId]);
 
     // Dashboard stats
     const [[stats]] = await db.query(`
       SELECT
-        (SELECT COUNT(*) FROM students) AS totalStudents,
-        (SELECT COUNT(*) FROM students WHERE student_status = 'Active') AS activeStudents,
-        (SELECT COUNT(*) FROM courses) AS totalCourses,
-        (SELECT COUNT(*) FROM grades) AS totalGrades,
-        (SELECT ROUND(AVG(grade_numeric),2) FROM grades) AS averageGrade
-    `);
+        (SELECT COUNT(*) FROM students WHERE user_id = ?) AS totalStudents,
+        (SELECT COUNT(*) FROM students WHERE student_status = 'Active' AND user_id = ?) AS activeStudents,
+        (SELECT COUNT(*) FROM courses WHERE user_id = ?) AS totalCourses,
+        (SELECT COUNT(*) FROM grades WHERE user_id = ?) AS totalGrades,
+        (SELECT ROUND(AVG(grade_numeric),2) FROM grades WHERE user_id = ?) AS averageGrade
+    `, [userId, userId, userId, userId, userId]);
 
     res.json({
       stats,
@@ -112,46 +150,10 @@ app.get('/api/dashboard', async (req, res) => {
     res.status(500).json({ error: 'Dashboard data failed' });
   }
 });
-// app.get('/api/dashboard', async (req, res) => {
-//   try {
-//     // Top performing students
-//     const [topStudents] = await db.query(`
-//     SELECT 
-//       s.student_id,
-//       CONCAT(s.first_name, ' ', s.last_name) AS name,
-//       GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS course,
-//       COALESCE(ROUND(AVG(g.grade_numeric), 2), 0) AS grade,
-//       s.student_status AS status
-//     FROM students s
-//     LEFT JOIN grades g ON s.student_id = g.student_id
-//     LEFT JOIN courses c ON g.course_id = c.course_id
-//     GROUP BY s.student_id
-//     ORDER BY grade DESC
-//     LIMIT 5;
-//     `);
-
-//     // Dashboard stats
-//     const [[stats]] = await db.query(`
-//       SELECT
-//         (SELECT COUNT(*) FROM students) AS totalStudents,
-//         (SELECT COUNT(*) FROM courses) AS totalCourses,
-//         (SELECT COUNT(*) FROM grades) AS totalGrades
-//     `);
-
-//     res.json({
-//       stats,
-//       topStudents
-//     });
-
-//   } catch (err) {
-//     console.error('DASHBOARD ERROR:', err);
-//     res.status(500).json({ error: 'Dashboard data failed' });
-//   }
-// });
-
 
 //Students
-app.get('/api/students', async (req, res) => {
+app.get('/api/students', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
   const sql = `
     SELECT 
       s.student_id,
@@ -164,24 +166,26 @@ app.get('/api/students', async (req, res) => {
     LEFT JOIN enrollments e ON s.student_id = e.student_id
     LEFT JOIN courses c ON e.course_id = c.course_id
     LEFT JOIN grades g ON s.student_id = g.student_id
+    WHERE s.user_id = ?
     GROUP BY s.student_id;
   `;
 
   try {
-    const [rows] = await db.query(sql);
+    const [rows] = await db.query(sql, [userId]);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Database query failed' });
   }
 });
-app.get('/api/students/:id', async (req, res) => {
+app.get('/api/students/:id', authenticateToken, async (req, res) => {
   const id = req.params.id;
+  const userId = req.user.id;
 
   try {
     const [studentRows] = await db.query(
       `SELECT student_id, student_email, student_status, first_name, last_name, phone, date_of_birth, address
-       FROM students WHERE student_id = ?`,
-      [id]
+       FROM students WHERE student_id = ? AND user_id = ?`,
+      [id, userId]
     );
 
     if (!studentRows.length) {
@@ -192,8 +196,8 @@ app.get('/api/students/:id', async (req, res) => {
       `SELECT c.course_id, c.course_name
        FROM enrollments e
        JOIN courses c ON e.course_id = c.course_id
-       WHERE e.student_id = ?`,
-      [id]
+       WHERE e.student_id = ? AND e.user_id = ?`,
+      [id, userId]
     );
 
     res.json({
@@ -206,8 +210,9 @@ app.get('/api/students/:id', async (req, res) => {
   }
 });
 
-app.post('/api/students', async (req, res) => {
+app.post('/api/students', authenticateToken, async (req, res) => {
   const conn = await db.getConnection();
+  const userId = req.user.id;
   try {
     await conn.beginTransaction();
 
@@ -219,15 +224,15 @@ app.post('/api/students', async (req, res) => {
       date_of_birth,
       address,
       status,
-      course_ids
+      course_ids,
     } = req.body;
 
     const studentId = await generateStudentId(conn);
 
     await conn.query(
       `INSERT INTO students 
-      (student_id, first_name, last_name, student_email, phone, date_of_birth, address, student_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      (student_id, first_name, last_name, student_email, phone, date_of_birth, address, student_status, user_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         studentId,
         first_name,
@@ -236,29 +241,30 @@ app.post('/api/students', async (req, res) => {
         phone,
         date_of_birth,
         address,
-        status
+        status,
+        userId
       ]
     );
 
     for (const courseId of course_ids) {
       await conn.query(
-        `INSERT INTO enrollments (student_id, course_id)
-         VALUES (?, ?)`,
-        [studentId, courseId]
+        `INSERT INTO enrollments (student_id, course_id, user_id)
+         VALUES (?, ?, ?)`,
+        [studentId, courseId, userId]
       );
     }
 
     for (const courseId of course_ids) {
       await conn.query(
-        `INSERT INTO grades (student_id, course_id)
-         VALUES (?, ?)`,
-        [studentId, courseId]
+        `INSERT INTO grades (student_id, course_id, user_id)
+         VALUES (?, ?, ?)`,
+        [studentId, courseId, userId]
       );
 
       await conn.query(
-        `INSERT INTO attendance (student_id, course_id, total_classes, present, absent)
-         VALUES (?, ?, 0, 0, 0)`,
-        [studentId, courseId]
+        `INSERT INTO attendance (student_id, course_id, total_classes, present, absent, user_id)
+         VALUES (?, ?, 0, 0, 0, ?)`,
+        [studentId, courseId, userId]
       );
     }
 
@@ -271,11 +277,14 @@ app.post('/api/students', async (req, res) => {
     res.status(500).json({ error: err.message });
   } finally {
     conn.release();
+    console.log("ADD BODY:", req.body);
+
   }
 });
-app.put('/api/students/:id', async (req, res) => {
+app.put('/api/students/:id', authenticateToken, async (req, res) => {
   const conn = await db.getConnection();
   const studentId = req.params.id;
+  const userId = req.user.id;
 
   try {
     await conn.beginTransaction();
@@ -291,12 +300,12 @@ app.put('/api/students/:id', async (req, res) => {
       course_ids
     } = req.body;
 
-    // 1️⃣ Update student details
-    await conn.query(
+    // Update student details
+    const [result] = await conn.query(
       `UPDATE students
        SET first_name=?, last_name=?, student_email=?, phone=?, 
            date_of_birth=?, address=?, student_status=?
-       WHERE student_id=?`,
+       WHERE student_id=? AND user_id = ?`,
       [
         first_name,
         last_name,
@@ -305,20 +314,25 @@ app.put('/api/students/:id', async (req, res) => {
         date_of_birth,
         address,
         status,
-        studentId
+        studentId,
+        userId
       ]
     );
 
+    if (result.affectedRows === 0) {
+      throw new Error("Student not found or unauthorized");
+    }
+
     if (Array.isArray(course_ids)) {
       await conn.query(
-        'DELETE FROM enrollments WHERE student_id=?',
-        [studentId]
+        'DELETE FROM enrollments WHERE student_id=? AND user_id=?',
+        [studentId, userId]
       );
 
       for (const courseId of course_ids) {
         await conn.query(
-          'INSERT INTO enrollments (student_id, course_id) VALUES (?, ?)',
-          [studentId, courseId]
+          'INSERT INTO enrollments (student_id, course_id, user_id) VALUES (?, ?, ?)',
+          [studentId, courseId, userId]
         );
       }
     }
@@ -335,43 +349,45 @@ app.put('/api/students/:id', async (req, res) => {
   console.log("PARAM:", req.params.id);
   console.log("BODY:", req.body);
 });
-app.get('/api/courses/list', async (req, res) => {
+app.get('/api/courses/list', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
   try {
     const [rows] = await db.query(
-      'SELECT course_id, course_name FROM courses'
-    );
+      'SELECT course_id, course_name FROM courses WHERE user_id=?'
+    , [userId]);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch courses' });
   }
 });
-app.delete('/api/students/:id', async (req, res) => {
+app.delete('/api/students/:id', authenticateToken, async (req, res) => {
   const conn = await db.getConnection();
   const studentId = req.params.id;
+  const userId = req.user.id;
 
   try {
     await conn.beginTransaction();
 
     // Delete dependent records first
     await conn.query(
-      'DELETE FROM attendance WHERE student_id = ?',
-      [studentId]
+      'DELETE FROM attendance WHERE student_id = ? AND user_id=?',
+      [studentId, userId]
     );
 
     await conn.query(
-      'DELETE FROM grades WHERE student_id = ?',
-      [studentId]
+      'DELETE FROM grades WHERE student_id = ? AND user_id=?',
+      [studentId, userId]
     );
 
     await conn.query(
-      'DELETE FROM enrollments WHERE student_id = ?',
-      [studentId]
+      'DELETE FROM enrollments WHERE student_id = ? AND user_id=?',
+      [studentId, userId]
     );
 
     // Delete student
     const [result] = await conn.query(
-      'DELETE FROM students WHERE student_id = ?',
-      [studentId]
+      'DELETE FROM students WHERE student_id = ? AND user_id=?',
+      [studentId, userId]
     );
 
     if (result.affectedRows === 0) {
@@ -391,7 +407,8 @@ app.delete('/api/students/:id', async (req, res) => {
 });
 
 //Courses
-app.get('/api/courses', async (req, res) => {
+app.get('/api/courses', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
   const sql = `
   SELECT 
     c.course_id,
@@ -402,6 +419,7 @@ app.get('/api/courses', async (req, res) => {
   FROM courses c
   LEFT JOIN enrollments e 
     ON c.course_id = e.course_id
+    WHERE c.user_id=?
   GROUP BY 
     c.course_id,
     c.course_name,
@@ -410,7 +428,7 @@ app.get('/api/courses', async (req, res) => {
 
   `; 
   try {
-    const [courses] = await db.query (sql);
+    const [courses] = await db.query (sql, [userId]);
     res.json(courses);
   }
   catch (err) {
@@ -418,8 +436,9 @@ app.get('/api/courses', async (req, res) => {
     res.status(500).json(err);
   }
 });
-app.get('/api/courses/:id/students', async (req, res) => {
+app.get('/api/courses/:id/students', authenticateToken, async (req, res) => {
   const courseId = req.params.id;
+  const userId = req.user.id;
 
   const sql = `
     SELECT
@@ -435,27 +454,28 @@ app.get('/api/courses/:id/students', async (req, res) => {
       ON g.student_id = s.student_id AND g.course_id = e.course_id
     LEFT JOIN attendance a
       ON a.student_id = s.student_id AND a.course_id = e.course_id
-    WHERE e.course_id = ?;
+    WHERE e.course_id = ? AND e.user_id=?;
   `;
 
   try {
-    const [rows] = await db.query(sql, [courseId]);
+    const [rows] = await db.query(sql, [courseId, userId]);
     res.json(rows);
   } catch (err) {
     console.error('COURSE STUDENTS ERROR:', err);
     res.status(500).json({ error: 'Failed to fetch course students' });
   }
 });
-app.put('/api/courses/:id', async (req, res) => {
+app.put('/api/courses/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { course_name, instructor, schedule } = req.body;
+  const userId = req.user.id;
 
   try {
     await db.query(
       `UPDATE courses 
        SET course_name = ?, instructor = ?, schedule = ?
-       WHERE course_id = ?`,
-      [course_name, instructor, schedule, id]
+       WHERE course_id = ? AND user_id=?`,
+      [course_name, instructor, schedule, id, userId]
     );
 
     res.json({ message: 'Course updated successfully' });
@@ -464,13 +484,14 @@ app.put('/api/courses/:id', async (req, res) => {
     res.status(500).json(err);
   }
 });
-app.get('/api/courses/:id', async (req, res) => {
+app.get('/api/courses/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
+  const userId = req.user.id;
 
   try {
     const [rows] = await db.query(
-      'SELECT course_id, course_name, instructor, schedule FROM courses WHERE course_id = ?',
-      [id]
+      'SELECT course_id, course_name, instructor, schedule FROM courses WHERE course_id = ? AND user_id=?',
+      [id, userId]
     );
 
     if (rows.length === 0) {
@@ -483,19 +504,20 @@ app.get('/api/courses/:id', async (req, res) => {
     res.status(500).json(err);
   }
 });
-app.delete('/api/courses/:course_id', async (req, res) => {
+app.delete('/api/courses/:course_id', authenticateToken, async (req, res) => {
   const { course_id } = req.params;
+  const userId = req.user.id;
 
   try {
-    // 1️⃣ Delete dependent records first
-    await db.query('DELETE FROM attendance WHERE course_id = ?', [course_id]);
-    await db.query('DELETE FROM grades WHERE course_id = ?', [course_id]);
-    await db.query('DELETE FROM enrollments WHERE course_id = ?', [course_id]);
+    // Delete dependent records first
+    await db.query('DELETE FROM attendance WHERE course_id = ? AND user_id=?', [course_id, userId]);
+    await db.query('DELETE FROM grades WHERE course_id = ? AND user_id=?', [course_id, userId]);
+    await db.query('DELETE FROM enrollments WHERE course_id = ? AND user_id=?', [course_id, userId]);
 
-    // 2️⃣ Now delete course
+    // Now delete course
     const [result] = await db.query(
-      'DELETE FROM courses WHERE course_id = ?',
-      [course_id]
+      'DELETE FROM courses WHERE course_id = ? AND user_id=?',
+      [course_id, userId]
     );
 
     if (result.affectedRows === 0) {
@@ -513,13 +535,14 @@ app.use((req, res, next) => {
   console.log("Incoming request:", req.method, req.url);
   next();
 });
-app.post('/api/courses', async (req, res) => {
+app.post('/api/courses', authenticateToken, async (req, res) => {
   const { course_id, course_name, instructor, schedule } = req.body;
+  const userId = req.user.id;
 
   try {
     await db.query(
-      'INSERT INTO courses (course_id, course_name, instructor, schedule) VALUES (?, ?, ?, ?)',
-      [course_id, course_name, instructor, schedule]
+      'INSERT INTO courses (course_id, course_name, instructor, schedule, user_id) VALUES (?, ?, ?, ?, ?)',
+      [course_id, course_name, instructor, schedule, userId]
     );
 
     res.json({ message: 'Course added successfully' });
@@ -531,7 +554,8 @@ app.post('/api/courses', async (req, res) => {
 });
 
 //Grades
-app.get('/api/grades', async (req, res) => {
+app.get('/api/grades', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
   const sql = `
   SELECT 
     g.student_id,
@@ -544,11 +568,11 @@ app.get('/api/grades', async (req, res) => {
     g.performance
   FROM grades g
   LEFT JOIN students s ON g.student_id = s.student_id
-  LEFT JOIN courses c ON g.course_id = c.course_id;
-
+  LEFT JOIN courses c ON g.course_id = c.course_id
+  WHERE g.user_id=?;
   `;
   try {
-    const [grades] = await db.query(sql);
+    const [grades] = await db.query(sql, [userId]);
     res.json(grades);
   }
   catch(err) {
@@ -556,14 +580,15 @@ app.get('/api/grades', async (req, res) => {
     res.status(500).json(err);
   }
 });
-app.put('/api/grades/:student_id/:course_id', async (req, res) => {
+app.put('/api/grades/:student_id/:course_id', authenticateToken, async (req, res) => {
   const { student_id, course_id } = req.params;
   const { grade_numeric, grade_letter, performance } = req.body;
+  const userId = req.user.id;
 
   const sql = `
     UPDATE grades
     SET grade_numeric = ?, grade_letter = ?, performance = ?
-    WHERE student_id = ? AND course_id = ?
+    WHERE student_id = ? AND course_id = ? AND user_id=?
   `;
 
   try {
@@ -572,7 +597,8 @@ app.put('/api/grades/:student_id/:course_id', async (req, res) => {
       grade_letter,
       performance,
       student_id,
-      course_id
+      course_id, 
+      userId
     ]);
 
     res.json({ message: 'Grade updated successfully' });
@@ -581,19 +607,20 @@ app.put('/api/grades/:student_id/:course_id', async (req, res) => {
     res.status(500).json(err);
   }
 });
-app.delete('/api/grades/:student_id/:course_id', async (req, res) => {
+app.delete('/api/grades/:student_id/:course_id', authenticateToken, async (req, res) => {
   const { student_id, course_id } = req.params;
+  const userId = req.user.id;
 
   const sql = `
     UPDATE grades
     SET grade_numeric = NULL,
         grade_letter = NULL,
         performance = NULL
-    WHERE student_id = ? AND course_id = ?
+    WHERE student_id = ? AND course_id = ? AND user_id=?
   `;
 
   try {
-    await db.query(sql, [student_id, course_id]);
+    await db.query(sql, [student_id, course_id, userId]);
     res.json({ message: 'Grade cleared successfully' });
   } catch (err) {
     console.log('DELETE ERROR:', err);
@@ -602,9 +629,9 @@ app.delete('/api/grades/:student_id/:course_id', async (req, res) => {
 });
 
 //Attendance
-app.get('/api/attendance', async (req, res) => {
-
+app.get('/api/attendance', authenticateToken, async (req, res) => {
   const { course } = req.query;
+  const userId = req.user.id;
 
   let sql = `
     SELECT 
@@ -621,12 +648,13 @@ app.get('/api/attendance', async (req, res) => {
       ON s.student_id = a.student_id
     LEFT JOIN courses c 
       ON c.course_id = a.course_id
+    WHERE a.user_id = ?
   `;
 
-  let values = [];
+  let values = [userId];
 
   if (course && course !== 'Select a course') {
-    sql += ` WHERE c.course_name = ?`;
+    sql += ` AND c.course_name = ?`;
     values.push(course);
   }
 
@@ -638,16 +666,18 @@ app.get('/api/attendance', async (req, res) => {
     res.status(500).json(err);
   }
 });
-app.post('/api/attendance/mark', async (req, res) => {
+
+app.post('/api/attendance/mark', authenticateToken, async (req, res) => {
   const { course_id, date, records } = req.body;
+  const userId = req.user.id;
 
   try {
     for (const record of records) {
       await db.query(
-        `INSERT INTO attendance_records (student_id, course_id, date, status)
-         VALUES (?, ?, ?, ?)
+        `INSERT INTO attendance_records (student_id, course_id, date, status, user_id)
+         VALUES (?, ?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE status = VALUES(status)`,
-        [record.student_id, course_id, date, record.status]
+        [record.student_id, course_id, date, record.status, userId]
       );
     }
 
@@ -657,7 +687,8 @@ app.post('/api/attendance/mark', async (req, res) => {
     res.status(500).json(err);
   }
 });
-app.get('/api/attendance/mark', async (req, res) => {
+app.get('/api/attendance/mark', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
   const sql = `
   SELECT 
     s.student_id,
@@ -666,11 +697,14 @@ app.get('/api/attendance/mark', async (req, res) => {
     c.course_name
   FROM enrollments e
   JOIN students s ON e.student_id = s.student_id
-  JOIN courses c ON e.course_id = c.course_id;`;
-  const [rows] = await db.query(sql);
+  JOIN courses c ON e.course_id = c.course_id
+  WHERE e.user_id=?;
+  `;
+  const [rows] = await db.query(sql, [userId]);
   res.json(rows);
 });
-app.get('/api/attendance/marking-list', async (req, res) => {
+app.get('/api/attendance/marking-list', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
   const sql = `
     SELECT 
       s.student_id,
@@ -680,36 +714,40 @@ app.get('/api/attendance/marking-list', async (req, res) => {
     FROM students s
     JOIN enrollments e ON s.student_id = e.student_id
     JOIN courses c ON c.course_id = e.course_id
+    WHERE s.user_id=?
   `;
 
-  const [rows] = await db.query(sql);
+  const [rows] = await db.query(sql, [userId]);
   res.json(rows);
 });
-app.get('/api/courses', async (req, res) => {
-  const [rows] = await db.query("SELECT course_id, course_name FROM courses");
+app.get('/api/courses', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+  const [rows] = await db.query("SELECT course_id, course_name FROM courses WHERE user_id=?", [userId]);
   res.json(rows);
 });
-app.get('/api/attendance/students', async (req, res) => {
+app.get('/api/attendance/students', authenticateToken, async (req, res) => {
   const { course_id } = req.query;
+  const userId = req.user.id;
 
   const [rows] = await db.query(`
     SELECT s.student_id,
            CONCAT(s.first_name, ' ', s.last_name) AS student_name
     FROM enrollments e
     JOIN students s ON s.student_id = e.student_id
-    WHERE e.course_id = ?
-  `, [course_id]);
+    WHERE e.course_id = ? AND e.user_id=?
+  `, [course_id, userId]);
 
   res.json(rows);
 });
 
 
 //Settings
-app.get('/api/settings', async (req, res) => {
+app.get('/api/settings', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
   try {
-    const [institution] = await db.query('SELECT * FROM institution LIMIT 1');
-    const [academic] = await db.query('SELECT * FROM academic LIMIT 1');
-    const [notifications] = await db.query('SELECT * FROM notifications LIMIT 1');
+    const [institution] = await db.query('SELECT * FROM institution WHERE user_id=? LIMIT 1', [userId]);
+    const [academic] = await db.query('SELECT * FROM academic WHERE user_id=? LIMIT 1', [userId]);
+    const [notifications] = await db.query('SELECT * FROM notifications WHERE user_id=? LIMIT 1', [userId]);
 
     res.json({
       institution: institution[0],
@@ -727,26 +765,28 @@ app.get('/api/settings', async (req, res) => {
   }
 });
 
-app.put('/api/settings', async (req, res) => {
+app.put('/api/settings', authenticateToken, async (req, res) => {
   const { institution, academic, notifications } = req.body;
+  const userId = req.user.id;
 
   try {
     await db.query(
-      `UPDATE institution SET name=?, email=?, phone=?, address=?`,
-      [institution.name, institution.email, institution.phone, institution.address]
+      `UPDATE institution SET name=?, email=?, phone=?, address=?  WHERE user_id=?`,
+      [institution.name, institution.email, institution.phone, institution.address, userId]
     );
 
     await db.query(
-      `UPDATE academic SET semester=?, year=?, passing_grade=?, attendance_required=?`,
-      [academic.semester, academic.year, academic.passing_grade, academic.attendance_required]
+      `UPDATE academic SET semester=?, year=?, passing_grade=?, attendance_required=?  WHERE user_id=?`,
+      [academic.semester, academic.year, academic.passing_grade, academic.attendance_required, userId]
     );
 
     await db.query(
-      `UPDATE notifications SET email=?, grade=?, attendance=?`,
+      `UPDATE notifications SET email=?, grade=?, attendance=?  WHERE user_id=?`,
       [
         notifications.email ? 1 : 0,
         notifications.grade ? 1 : 0,
-        notifications.attendance ? 1 : 0
+        notifications.attendance ? 1 : 0,
+        userId 
       ]
     );
 
@@ -757,14 +797,17 @@ app.put('/api/settings', async (req, res) => {
   }
 });
 
-async function generateStudentId(conn) {
+async function generateStudentId(conn, userId) {
   const academicYear = '2021';
 
-  const [[row]] = await conn.query(`
+  const [[row]] = await conn.query(
+    `
     SELECT COUNT(*) AS count 
     FROM students 
-    WHERE student_id LIKE 'UNI${academicYear}%'
-  `);
+    WHERE student_id LIKE ? AND user_id=?
+    `,
+    [`UNI${academicYear}%`, userId]
+  );
 
   const nextNumber = String(row.count + 1).padStart(3, '0');
   return `UNI${academicYear}${nextNumber}`;
