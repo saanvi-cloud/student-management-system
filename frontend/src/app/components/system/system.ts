@@ -39,4 +39,16 @@ export class SettingsComponent implements OnInit {
       error: (err) => console.error(err)
     });
   }
+
+  onReset() {
+    if (!confirm('This will delete all your data and reload demo data. Continue?')) return;
+
+    this.settingsService.resetDemo().subscribe({
+      next: () => {
+        alert('Demo data reset successfully');
+        window.location.reload();
+      },
+      error: () => alert('Reset failed')
+    });
+  }
 }

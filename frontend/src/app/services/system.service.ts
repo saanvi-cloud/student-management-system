@@ -26,5 +26,9 @@ export class SettingsService {
       tap(() => this.settingsSubject.next(settings))
     );
   }
+
+  resetDemo() {
+    return this.http.post('http://localhost:3000/api/reset-demo', {});
+  }
 }
 

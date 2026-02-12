@@ -6,6 +6,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const {
+  clearUserData,
+  initializeUserDefaults,
+  seedDemoData
+} = require('./services/seedService');
+
+
 //Login
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -152,29 +159,62 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
 });
 
 //Students
+// app.get('/api/students', authenticateToken, async (req, res) => {
+//   const userId = req.user.id;
+//   const sql = `
+//     SELECT 
+//       s.student_id,
+//       CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+//       s.student_email,
+//       s.student_status,
+//       GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses,
+//       COALESCE(ROUND(AVG(g.grade_numeric), 2), 0) AS grade_numeric
+//     FROM students s
+//     LEFT JOIN enrollments e ON s.student_id = e.student_id
+//     LEFT JOIN courses c ON e.course_id = c.course_id
+//     LEFT JOIN grades g ON s.student_id = g.student_id
+//     WHERE s.user_id = ?
+//     GROUP BY s.student_id;
+//   `;
+
+//   try {
+//     const [rows] = await db.query(sql, [userId]);
+//     res.json(rows);
+//   } catch (err) {
+//     res.status(500).json({ error: 'Database query failed' });
+//   }
+// });
 app.get('/api/students', authenticateToken, async (req, res) => {
   const userId = req.user.id;
-  const sql = `
-    SELECT 
-      s.student_id,
-      CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-      s.student_email,
-      s.student_status,
-      GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses,
-      COALESCE(ROUND(AVG(g.grade_numeric), 2), 0) AS grade_numeric
-    FROM students s
-    LEFT JOIN enrollments e ON s.student_id = e.student_id
-    LEFT JOIN courses c ON e.course_id = c.course_id
-    LEFT JOIN grades g ON s.student_id = g.student_id
-    WHERE s.user_id = ?
-    GROUP BY s.student_id;
-  `;
 
   try {
-    const [rows] = await db.query(sql, [userId]);
+    const [rows] = await db.query(
+      `SELECT 
+          s.student_id,
+          CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+          s.student_email,
+          s.student_status,
+          GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses,
+          COALESCE(ROUND(AVG(g.grade_numeric), 2), 0) AS grade_numeric
+      FROM students s
+      LEFT JOIN enrollments e 
+          ON s.student_id = e.student_id
+          AND s.user_id = e.user_id
+      LEFT JOIN courses c 
+          ON e.course_id = c.course_id
+          AND e.user_id = c.user_id
+      LEFT JOIN grades g 
+          ON e.student_id = g.student_id
+          AND e.course_id = g.course_id
+          AND e.user_id = g.user_id
+      WHERE s.user_id = ?
+      GROUP BY s.student_id;`,
+      [userId]
+    );
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: 'Database query failed' });
+    console.error("STUDENTS ERROR:", err);
+    res.status(500).json(err);
   }
 });
 app.get('/api/students/:id', authenticateToken, async (req, res) => {
@@ -554,29 +594,60 @@ app.post('/api/courses', authenticateToken, async (req, res) => {
 });
 
 //Grades
+// app.get('/api/grades', authenticateToken, async (req, res) => {
+//   const userId = req.user.id;
+//   const sql = `
+//   SELECT 
+//     g.student_id,
+//     CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+//     c.course_name,
+//     c.instructor,
+//     g.course_id,
+//     g.grade_numeric,
+//     g.grade_letter,
+//     g.performance
+//   FROM grades g
+//   LEFT JOIN students s ON g.student_id = s.student_id
+//   LEFT JOIN courses c ON g.course_id = c.course_id
+//   WHERE g.user_id=?;
+//   `;
+//   try {
+//     const [grades] = await db.query(sql, [userId]);
+//     res.json(grades);
+//   }
+//   catch(err) {
+//     console.log('GRADES ERROR: ',err);
+//     res.status(500).json(err);
+//   }
+// });
 app.get('/api/grades', authenticateToken, async (req, res) => {
   const userId = req.user.id;
-  const sql = `
-  SELECT 
-    g.student_id,
-    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-    c.course_name,
-    c.instructor,
-    g.course_id,
-    g.grade_numeric,
-    g.grade_letter,
-    g.performance
-  FROM grades g
-  LEFT JOIN students s ON g.student_id = s.student_id
-  LEFT JOIN courses c ON g.course_id = c.course_id
-  WHERE g.user_id=?;
-  `;
+
   try {
-    const [grades] = await db.query(sql, [userId]);
-    res.json(grades);
-  }
-  catch(err) {
-    console.log('GRADES ERROR: ',err);
+    const [rows] = await db.query(
+      `SELECT 
+          g.student_id,
+          CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+          c.course_name,
+          g.grade_numeric,
+          g.grade_letter,
+          g.performance,
+          c.instructor,
+          g.course_id
+       FROM grades g
+       JOIN students s 
+            ON g.student_id = s.student_id 
+            AND g.user_id = s.user_id
+       JOIN courses c 
+            ON g.course_id = c.course_id 
+            AND g.user_id = c.user_id
+       WHERE g.user_id = ?`,
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("GRADES ERROR:", err);
     res.status(500).json(err);
   }
 });
@@ -629,44 +700,74 @@ app.delete('/api/grades/:student_id/:course_id', authenticateToken, async (req, 
 });
 
 //Attendance
+// app.get('/api/attendance', authenticateToken, async (req, res) => {
+//   const { course } = req.query;
+//   const userId = req.user.id;
+
+//   let sql = `
+//     SELECT 
+//       a.student_id, 
+//       CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+//       c.course_name, 
+//       a.attendance_rate, 
+//       a.total_classes, 
+//       a.present, 
+//       a.absent, 
+//       a.attendance_status
+//     FROM attendance a
+//     LEFT JOIN students s 
+//       ON s.student_id = a.student_id
+//     LEFT JOIN courses c 
+//       ON c.course_id = a.course_id
+//     WHERE a.user_id = ?
+//   `;
+
+//   let values = [userId];
+
+//   if (course && course !== 'Select a course') {
+//     sql += ` AND c.course_name = ?`;
+//     values.push(course);
+//   }
+
+//   try {
+//     const [attendance] = await db.query(sql, values);
+//     res.json(attendance);
+//   } catch (err) {
+//     console.log('ATTENDANCE ERROR: ', err);
+//     res.status(500).json(err);
+//   }
+// });
 app.get('/api/attendance', authenticateToken, async (req, res) => {
-  const { course } = req.query;
   const userId = req.user.id;
 
-  let sql = `
-    SELECT 
-      a.student_id, 
-      CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-      c.course_name, 
-      a.attendance_rate, 
-      a.total_classes, 
-      a.present, 
-      a.absent, 
-      a.attendance_status
-    FROM attendance a
-    LEFT JOIN students s 
-      ON s.student_id = a.student_id
-    LEFT JOIN courses c 
-      ON c.course_id = a.course_id
-    WHERE a.user_id = ?
-  `;
-
-  let values = [userId];
-
-  if (course && course !== 'Select a course') {
-    sql += ` AND c.course_name = ?`;
-    values.push(course);
-  }
-
   try {
-    const [attendance] = await db.query(sql, values);
-    res.json(attendance);
+    const [rows] = await db.query(
+      `SELECT 
+          a.student_id,
+          CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+          c.course_name,
+          a.attendance_rate,
+          a.total_classes,
+          a.present,
+          a.absent,
+          a.attendance_status
+       FROM attendance a
+       JOIN students s 
+            ON a.student_id = s.student_id
+            AND a.user_id = s.user_id
+       JOIN courses c 
+            ON a.course_id = c.course_id
+            AND a.user_id = c.user_id
+       WHERE a.user_id = ?`,
+      [userId]
+    );
+
+    res.json(rows);
   } catch (err) {
-    console.log('ATTENDANCE ERROR: ', err);
+    console.error("ATTENDANCE ERROR:", err);
     res.status(500).json(err);
   }
 });
-
 app.post('/api/attendance/mark', authenticateToken, async (req, res) => {
   const { course_id, date, records } = req.body;
   const userId = req.user.id;
@@ -675,12 +776,47 @@ app.post('/api/attendance/mark', authenticateToken, async (req, res) => {
     for (const record of records) {
       await db.query(
         `INSERT INTO attendance_records (student_id, course_id, date, status, user_id)
-         VALUES (?, ?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE status = VALUES(status)`,
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE status = VALUES(status)`,
         [record.student_id, course_id, date, record.status, userId]
       );
-    }
 
+      // Recalculate attendance summary
+      const [[stats]] = await db.query(
+        `SELECT 
+            COUNT(*) as total,
+            SUM(status='Present') as presentCount,
+            SUM(status='Absent') as absentCount
+        FROM attendance_records
+        WHERE student_id=? AND course_id=? AND user_id=?`,
+        [record.student_id, course_id, userId]
+      );
+
+      const rate = stats.total > 0
+        ? ((stats.presentCount / stats.total) * 100).toFixed(2)
+        : 0;
+
+      let statusText = 'Low';
+      if (rate >= 85) statusText = 'Excellent';
+      else if (rate >= 75) statusText = 'Good';
+      else if (rate >= 50) statusText = 'Average';
+
+      await db.query(
+        `UPDATE attendance
+        SET total_classes=?, present=?, absent=?, attendance_rate=?, attendance_status=?
+        WHERE student_id=? AND course_id=? AND user_id=?`,
+        [
+          stats.total,
+          stats.presentCount,
+          stats.absentCount,
+          rate,
+          statusText,
+          record.student_id,
+          course_id,
+          userId
+        ]
+      );
+    }
     res.json({ message: "Attendance saved successfully" });
   } catch (err) {
     console.log("MARK ERROR:", err);
@@ -744,10 +880,43 @@ app.get('/api/attendance/students', authenticateToken, async (req, res) => {
 //Settings
 app.get('/api/settings', authenticateToken, async (req, res) => {
   const userId = req.user.id;
+
   try {
-    const [institution] = await db.query('SELECT * FROM institution WHERE user_id=? LIMIT 1', [userId]);
-    const [academic] = await db.query('SELECT * FROM academic WHERE user_id=? LIMIT 1', [userId]);
-    const [notifications] = await db.query('SELECT * FROM notifications WHERE user_id=? LIMIT 1', [userId]);
+    let [institution] = await db.query(
+      'SELECT * FROM institution WHERE user_id=? LIMIT 1',
+      [userId]
+    );
+
+    let [academic] = await db.query(
+      'SELECT * FROM academic WHERE user_id=? LIMIT 1',
+      [userId]
+    );
+
+    let [notifications] = await db.query(
+      'SELECT * FROM notifications WHERE user_id=? LIMIT 1',
+      [userId]
+    );
+
+    // 🔥 If missing → initialize
+    if (!institution.length || !academic.length || !notifications.length) {
+
+      await initializeUserDefaults(db, userId);
+
+      [institution] = await db.query(
+        'SELECT * FROM institution WHERE user_id=? LIMIT 1',
+        [userId]
+      );
+
+      [academic] = await db.query(
+        'SELECT * FROM academic WHERE user_id=? LIMIT 1',
+        [userId]
+      );
+
+      [notifications] = await db.query(
+        'SELECT * FROM notifications WHERE user_id=? LIMIT 1',
+        [userId]
+      );
+    }
 
     res.json({
       institution: institution[0],
@@ -812,5 +981,30 @@ async function generateStudentId(conn, userId) {
   const nextNumber = String(row.count + 1).padStart(3, '0');
   return `UNI${academicYear}${nextNumber}`;
 }
+
+// Seed function
+app.post('/api/reset-demo', authenticateToken, async (req, res) => {
+
+  const conn = await db.getConnection();
+  const userId = req.user.id;
+
+  try {
+    await conn.beginTransaction();
+
+    await clearUserData(conn, userId);
+    await initializeUserDefaults(conn, userId);
+    await seedDemoData(conn, userId);
+
+    await conn.commit();
+    res.json({ message: 'Demo data reset successfully' });
+
+  } catch (err) {
+    await conn.rollback();
+    console.error("RESET ERROR:", err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
+  }
+});
 
 app.listen(3000, () => console.log('Server running on port 3000'));

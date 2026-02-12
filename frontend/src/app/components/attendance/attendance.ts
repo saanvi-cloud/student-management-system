@@ -14,37 +14,33 @@ import { FormsModule } from '@angular/forms';
 })
 export class AttendanceComponent implements OnInit {
 
-  // attendance: Attendance[] = [];
-  attendance$!: Observable<Attendance[]>;
+  courses: string[] = [];
   selectedCourse: string = '';
+  allAttendance: Attendance[] = [];
+  filteredAttendance: Attendance[] = [];
+  attendance$!: Observable<Attendance[]>;
   attendance: (Attendance & { status?: string })[] = [];
+
 
   constructor(private attendanceService: AttendanceService) {}
 
   ngOnInit(): void {
-    this.attendance$ = this.attendanceService.getAttendance();
-    this.loadAttendance();
-  }
-
-  refreshAttendance(): void {
-    this.attendance$ = this.attendanceService.getAttendance();
-  }
-
-  loadAttendance(): void {
-    this.attendance$ = this.attendanceService.getAttendance(this.selectedCourse);
-
-    this.attendance$.subscribe(data => {
-      this.attendance = data.map(student => ({
-        ...student,
-        status: 'Present' // default value
-      }));
+    this.attendanceService.getAttendance().subscribe(data => {
+      this.allAttendance = data;
+      this.extractCourses(data);
+      this.applyFilters();
     });
   }
 
-  onCourseChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    this.selectedCourse = selectElement.value;
-    this.loadAttendance();
+  applyFilters() {
+    this.filteredAttendance = this.allAttendance.filter(a =>
+      !this.selectedCourse || a.course_name === this.selectedCourse
+    );
+  }
+
+  extractCourses(data: Attendance[]) {
+    const uniqueCourses = new Set(data.map(a => a.course_name));
+    this.courses = Array.from(uniqueCourses);
   }
   openMarkAttendance() {
 
@@ -74,5 +70,52 @@ export class AttendanceComponent implements OnInit {
       error: err => console.error('Mark attendance error:', err)
     });
   }
+  loadAttendance(): void {
+    this.attendance$ = this.attendanceService.getAttendance();
+  
+    this.attendance$.subscribe(data => {
+      this.attendance = data.map(student => ({
+        ...student,
+        status: 'Present' // default value
+      }));
+    });
+  }
 }
+
+// export class AttendanceComponent implements OnInit {
+
+//   // attendance: Attendance[] = [];
+
+
+//   ngOnInit(): void {
+//     this.attendanceService.getAttendance().subscribe(data => {
+//       this.allAttendance = data;
+//       this.extractCourses(data);
+//       this.applyFilters();
+//     });
+//   }
+//   applyFilters() {
+//     this.filteredAttendance = this.allAttendance.filter(a => {
+//       return !this.selectedCourse || a.course_name === this.selectedCourse;
+//     });
+//   }
+
+//   extractCourses(data: Attendance[]) {
+//     const uniqueCourses = new Set(data.map(a => a.course_name));
+//     this.courses = Array.from(uniqueCourses);
+//   }
+
+//   refreshAttendance(): void {
+//     this.attendance$ = this.attendanceService.getAttendance();
+//   }
+
+
+//   onCourseChange(event: Event): void {
+//     const selectElement = event.target as HTMLSelectElement;
+//     this.selectedCourse = selectElement.value;
+//     this.loadAttendance();
+//   }
+
+  
+// }
 

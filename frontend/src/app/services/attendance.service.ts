@@ -10,13 +10,8 @@ export class AttendanceService {
 
   constructor(private http: HttpClient) {}
 
-  getAttendance(course?: string) {
+  getAttendance() {
     let url = this.apiUrl;
-
-    if (course && course !== 'Select a course') {
-      url += `?course=${encodeURIComponent(course)}`;
-    }
-
     return this.http.get<Attendance[]>(url);
   }
   markAttendance(data: any) {

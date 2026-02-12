@@ -17,23 +17,23 @@
   <form class="w-full">
 
     <div class="w-full gap-8 mb-7 flex justify-between">
-      <div class="w-full">
+      <!-- <div class="w-full">
         <h4 class="p-2">Select Date</h4>
         <input type="date" class="p-2 w-full border border-slate-300 rounded-md"/>
-      </div>
+      </div> -->
 
       <div class="w-full">
         <h4 class="p-2">Filter by course</h4>
-        <select 
-          class="p-2 w-full border border-slate-300 rounded-md"
-          (change)="onCourseChange($event)"
+        <select
+          name="course"
+          [(ngModel)]="selectedCourse"
+          (change)="applyFilters()"
+          class="p-2 w-full border rounded-md"
         >
-          <option value="">Select a course</option>
-          <option>Computer Science</option>
-          <option>Business Administration</option>
-          <option>Engineering</option>
-          <option>Medicine</option>
-          <option>Arts</option>
+          <option value="">All Courses</option>
+          <option *ngFor="let c of courses" [value]="c">
+            {{ c }}
+          </option>
         </select>
       </div>
     </div>
@@ -51,8 +51,8 @@
       <th class="table-cell">Status</th>
     </thead>
 
-    <tbody *ngIf="attendance$ | async as attendance; else loading">
-      <tr *ngFor="let a of attendance" class="border-b border-slate-300">
+    <tbody>
+      <tr *ngFor="let a of filteredAttendance" class="border-b border-slate-300">
         <td class="py-4 pl-12">{{ a.student_id }}</td>
         <td class="py-4 pl-14">{{ a.student_name }}</td>
         <td class="py-4 pl-14">{{ a.course_name }}</td>
@@ -60,23 +60,25 @@
         <td class="py-4 pl-18">{{ a.total_classes }}</td>
         <td class="py-4 pl-10">{{ a.present }}</td>
         <td class="py-4 pl-10">{{ a.absent }}</td>
-        <!-- <td class="py-4 pl-10">
-          <select [(ngModel)]="a.status" class="border rounded px-2 py-1">
-            <option value="Present">Present</option>
-            <option value="Absent">Absent</option>
-          </select>
-        </td> -->
         <td class="py-4 px-4 text-center">
-          <span
-            class="px-3 py-1 rounded-xl"
-            [ngClass]="{
-              'bg-green-200 text-green-800': a.attendance_rate >= 90,
-              'bg-yellow-200 text-yellow-800': a.attendance_rate < 90 && a.attendance_rate >= 75,
-              'bg-red-200 text-red-800': a.attendance_rate < 75
-            }"
-          >
-            {{ a.attendance_status }}
-          </span>
+          <div>
+            <span
+              class="px-3 py-1 rounded-xl"
+              [ngClass]="{
+                'bg-green-200 text-green-800': a.attendance_rate >= 90,
+                'bg-yellow-200 text-yellow-800': a.attendance_rate < 90 && a.attendance_rate >= 75,
+                'bg-red-200 text-red-800': a.attendance_rate < 75
+              }"
+            >
+              {{ a.attendance_status }}
+            </span>
+          </div>
+
+        </td>
+      </tr>
+      <tr *ngIf="filteredAttendance.length === 0">
+        <td colspan="7" class="text-center text-slate-500 py-10">
+          No attendance records found.
         </td>
       </tr>
     </tbody>
