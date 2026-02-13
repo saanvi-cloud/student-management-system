@@ -94,6 +94,16 @@ async function seedDemoData(conn, userId) {
       student2, userId
     ]
   );
+  //Events
+  await conn.query(
+    `INSERT INTO school_events (id, title, description, date, type, user_id)
+    VALUES
+    ('EVT001','Math Exam','Final Math Exam','2026-02-20','exam',?),
+    ('EVT002','Science Fair','Inter-school Competition','2026-02-15','competition',?),
+    ('EVT003','Annual Day','School Celebration','2026-02-25','celebration',?),
+    ('EVT004','Sports Day','Sports Competition','2026-02-15','competition',?)`,
+    [userId, userId, userId, userId]
+  );
 }
 
 module.exports = {

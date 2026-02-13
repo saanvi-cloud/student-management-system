@@ -876,6 +876,22 @@ app.get('/api/attendance/students', authenticateToken, async (req, res) => {
   res.json(rows);
 });
 
+//Events
+app.get('/api/events', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM school_events WHERE user_id=?',
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error('EVENTS ERROR:', err);
+    res.status(500).json(err);
+  }
+});
 
 //Settings
 app.get('/api/settings', authenticateToken, async (req, res) => {

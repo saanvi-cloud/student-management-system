@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AddStudentService } from '../../services/add-student.service';
 import { AddStudent } from '../../models/add-student.model';
 import { CourseService } from '../../services/course.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-add-student',
@@ -26,7 +27,8 @@ export class AddStudentComponent {
 
   constructor(
     private addStudentService: AddStudentService,
-    private courseService: CourseService
+    private courseService: CourseService,
+    private router: Router
   ) {}
 
   courseInput = '';
@@ -97,7 +99,10 @@ export class AddStudentComponent {
     };
 
     this.addStudentService.addStudent(payload).subscribe({
-      next: () => alert('Student added successfully'),
+      next: () => {
+        alert('Student added successfully');
+        this.router.navigate(['/students']);
+      },
       error: err => console.error(err)
     });
   }

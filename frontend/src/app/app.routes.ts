@@ -12,6 +12,7 @@ import { AddCourseComponent } from "./pages/add-course/add-course";
 import { AttendanceMark } from "./components/attendance-mark/attendance-mark";
 import { AuthGuard } from "./auth/auth-guard";
 import { LoginComponent } from "./auth/login/login";
+import { Events } from "./components/events/events";
 
 export const routes: Routes = [
 
@@ -20,13 +21,14 @@ export const routes: Routes = [
   { path: 'dashboard', component: Dashboard, canActivate: [AuthGuard] },
   { path: 'students', component: Students, canActivate: [AuthGuard] },
   { path: 'students/edit/:id', component: EditStudent, canActivate: [AuthGuard] },
-  { path: 'add-student', component: AddStudentComponent, canActivate: [AuthGuard] },
+  { path: 'students/add', component: AddStudentComponent, canActivate: [AuthGuard] },
   { path: 'courses', component: Courses, canActivate: [AuthGuard] },
   { path: 'courses/edit/:id', component: EditCourseComponent, canActivate: [AuthGuard] },
   { path: 'courses/add', component: AddCourseComponent, canActivate: [AuthGuard] },
   { path: 'grades', component: Grades, canActivate: [AuthGuard] },
   { path: 'attendance', component: AttendanceComponent, canActivate: [AuthGuard] },
   { path: 'attendance-mark', component: AttendanceMark, canActivate: [AuthGuard] },
+  { path: 'events', component: Events, canActivate: [AuthGuard] },
   { path: 'system', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: 'login' }
 ];

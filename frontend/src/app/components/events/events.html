@@ -1,0 +1,56 @@
+<div class="p-10">
+
+  <!-- Title -->
+  <div class="text-blue-700/80 font-bold text-3xl mb-6">
+    <i class="fa-solid fa-calendar mr-2"></i>
+    Events
+  </div>
+
+  <!-- Calendar Card -->
+  <div class="bg-white shadow-md rounded-xl p-6 mb-8">
+
+    <div class="flex justify-between items-center mb-4">
+      <button (click)="previousMonth()">◀</button>
+
+      <h2 class="text-xl font-semibold">
+        {{ viewDate | date:'MMMM yyyy' }}
+      </h2>
+
+      <button (click)="nextMonth()">▶</button>
+    </div>
+
+    <mwl-calendar-month-view
+      [viewDate]="viewDate"
+      [events]="calendarEvents">
+    </mwl-calendar-month-view>
+
+  </div>
+
+  <!-- Events List Card -->
+  <div class="bg-white shadow-md rounded-xl p-6">
+    <div *ngFor="let event of filteredEvents" class="flex items-center mb-4">
+
+      <!-- Colored Bar -->
+      <div
+        class="w-2 h-10 mr-4 rounded"
+        [ngClass]="{
+          'bg-red-600': event.type === 'exam',
+          'bg-green-600': event.type === 'competition',
+          'bg-blue-600': event.type === 'celebration'
+        }">
+      </div>
+
+      <!-- Date -->
+      <div class="w-24 font-semibold">
+        {{ event.date | date:'dd MMM' }}
+      </div>
+
+      <!-- Description -->
+      <div>
+        {{ event.description }}
+      </div>
+
+    </div>
+  </div>
+
+</div>

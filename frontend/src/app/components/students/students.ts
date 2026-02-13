@@ -75,4 +75,7 @@ export class Students implements OnInit {
         }
       });
   }
+  navigateToAddStudent(): void {
+    this.router.navigate(['/students/add']);
+  }
 }
