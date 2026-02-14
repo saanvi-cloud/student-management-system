@@ -8,6 +8,8 @@ async function clearUserData(conn, userId) {
   await conn.query('DELETE FROM academic WHERE user_id=?', [userId]);
   await conn.query('DELETE FROM institution WHERE user_id=?', [userId]);
   await conn.query('DELETE FROM notifications WHERE user_id=?', [userId]);
+  await conn.query('DELETE FROM school_events WHERE user_id=?', [userId]);
+
 }
 async function initializeUserDefaults(conn, userId) {
   await conn.query(
@@ -31,6 +33,11 @@ async function initializeUserDefaults(conn, userId) {
 async function seedDemoData(conn, userId) {
 
   // Insert Courses
+  // const course1 = `SCE1_${userId}`;
+  // const course2 = `MAT2_${userId}`;
+  // const course_name1 = `Science${userId}`;
+  // const course_name2 = `Mathematics${userId}`;
+
   await conn.query(
     `INSERT INTO courses (course_id, course_name, instructor, schedule, user_id)
      VALUES

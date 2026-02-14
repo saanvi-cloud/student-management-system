@@ -12,7 +12,7 @@ import { AddCourseComponent } from "./pages/add-course/add-course";
 import { AttendanceMark } from "./components/attendance-mark/attendance-mark";
 import { AuthGuard } from "./auth/auth-guard";
 import { LoginComponent } from "./auth/login/login";
-import { Events } from "./components/events/events";
+import { EventsComponent } from "./components/events/events";
 
 export const routes: Routes = [
 
@@ -28,7 +28,7 @@ export const routes: Routes = [
   { path: 'grades', component: Grades, canActivate: [AuthGuard] },
   { path: 'attendance', component: AttendanceComponent, canActivate: [AuthGuard] },
   { path: 'attendance-mark', component: AttendanceMark, canActivate: [AuthGuard] },
-  { path: 'events', component: Events, canActivate: [AuthGuard] },
+  { path: 'events', component: EventsComponent, canActivate: [AuthGuard] },
   { path: 'system', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: 'login' }
 ];

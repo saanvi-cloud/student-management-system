@@ -35,16 +35,16 @@
     <!-- Upcoming Events -->
     <div class="w-[500px] bg-green-400/15 p-5 mr-15 border rounded-md border-green-400/15">
       <h3 class="text-[20px] font-bold mb-7">Upcoming Events</h3>
-      <div class="flex py-3">
-        <h4 class="text-[16px]"><span class="font-bold">Midterm Exams:</span> Next week</h4>
+
+      <div *ngFor="let event of upcomingEvents" class="flex py-3">
+        <h4 class="text-[16px]">
+          <span class="font-bold">{{ event.title }}:</span>
+          {{ event.date | date:'longDate' }}
+        </h4>
       </div>
-      <hr class="text-slate-300">
-      <div class="flex py-3">
-        <h4 class="text-[16px]"><span class="font-bold">Parent-Teacher Meeting:</span> March 25</h4>
-      </div>
-      <hr class="text-slate-300">
-      <div class="flex py-3">
-        <h4 class="text-[16px]"><span class="font-bold">Semester Break:</span> April 10-20</h4>
+
+      <div *ngIf="upcomingEvents.length === 0">
+        <p>No upcoming events</p>
       </div>
     </div>
   </div>

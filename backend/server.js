@@ -157,6 +157,18 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Dashboard data failed' });
   }
 });
+app.get('/', authenticateToken, (req, res) => {
+  const userId = req.user.id;
+
+  db.query(
+    'SELECT * FROM school_events WHERE user_id = ?',
+    [userId],
+    (err, results) => {
+      if (err) return res.status(500).json(err);
+      res.json(results);
+    }
+  );
+});
 
 //Students
 // app.get('/api/students', authenticateToken, async (req, res) => {
@@ -879,6 +891,7 @@ app.get('/api/attendance/students', authenticateToken, async (req, res) => {
 //Events
 app.get('/api/events', authenticateToken, async (req, res) => {
   const userId = req.user.id;
+  console.log('User ID from token:', req.user.id);
 
   try {
     const [rows] = await db.query(
@@ -886,6 +899,7 @@ app.get('/api/events', authenticateToken, async (req, res) => {
       [userId]
     );
 
+    console.log("User ID:", req.user.id);
     res.json(rows);
   } catch (err) {
     console.error('EVENTS ERROR:', err);

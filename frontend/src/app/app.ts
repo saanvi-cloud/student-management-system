@@ -11,6 +11,7 @@ import { SettingsComponent } from './components/system/system';
 import { RouterOutlet, Router } from '@angular/router';
 import { AuthService } from './auth/auth';
 import { CommonModule } from '@angular/common';
+import { SettingsService } from './services/system.service';
 
 @Component({
   selector: 'app-root',
@@ -20,9 +21,21 @@ import { CommonModule } from '@angular/common';
 })
 export class App {
   protected readonly title = signal('student-management-system');
-  constructor(public auth: AuthService, private router: Router) {}
+  constructor(public auth: AuthService, private router: Router, private settingsService: SettingsService) {}
 
   isLoginPage(): boolean {
     return this.router.url === '/login';
+  }
+
+  resetDemo() {
+    if (!confirm('This will delete all your data and reload demo data. Continue?')) return;
+
+    this.settingsService.resetDemo().subscribe({
+      next: () => {
+        alert('Demo data reset successfully');
+        window.location.reload();
+      },
+      error: () => alert('Reset failed')
+    });
   }
 }

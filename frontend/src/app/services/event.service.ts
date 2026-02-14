@@ -10,7 +10,10 @@ export class EventService {
 
   constructor(private http: HttpClient) {}
 
-  getEvents(): Observable<SchoolEvent[]> {
-    return this.http.get<SchoolEvent[]>(this.API);
+  // getEvents(): Observable<SchoolEvent[]> {
+  //   return this.http.get<SchoolEvent[]>(this.API);
+  // }
+  getEvents() {
+    return this.http.get<SchoolEvent[]>(`${this.API}`);
   }
 }

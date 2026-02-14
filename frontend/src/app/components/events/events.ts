@@ -12,7 +12,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './events.html',
   styleUrl: './events.css',
 })
-export class Events {
+export class EventsComponent {
 
   viewDate: Date = new Date();
   calendarEvents: CalendarEvent[] = [];
