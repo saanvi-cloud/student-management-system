@@ -15,32 +15,33 @@
   <!-- Notifications -->
   <div class="flex justify-between">
     <!-- Recent Activities -->
-    <div class="w-[500px] bg-indigo-400/15 p-5 ml-15 border rounded-md border-indigo-400/15">
+      <div class="w-[500px] bg-indigo-400/15 p-5 ml-15 border rounded-md border-indigo-400/15">
       <h3 class="text-[20px] font-bold mb-7">Recent Activities</h3>
-      <div class="flex py-3">
-        <i class="fa-solid fa-user-plus text-[16px] text-green-400 mr-2"></i>
-        <h4 class="text-[16px]">New student added: John Doe</h4>
+      <div *ngFor="let activity of recentActivities; let last = last"
+        class="py-3 border-b border-slate-300 last:border-b-0">
+        <div class="flex">
+          <i [ngClass]="getIcon(activity.type)"></i>
+          <h4 class="text-[16px] ml-2">
+            {{ activity.message }}
+          </h4>
+        </div>
       </div>
-      <hr class="text-slate-300">
-      <div class="flex py-3">
-        <i class="fa-solid fa-pen-to-square text-[16px] text-orange-400 mr-2"></i>
-        <h4 class="text-[16px]">Student record updated: Jane Smith</h4>
-      </div>
-      <hr class="text-slate-300">
-      <div class="flex py-3">
-        <i class="fa-solid fa-chart-line text-[16px] text-blue-600 mr-2"></i>
-        <h4 class="text-[16px]">Monthly report generated</h4>
+
+      <div *ngIf="recentActivities.length === 0">
+        <p>No recent activity</p>
       </div>
     </div>
     <!-- Upcoming Events -->
     <div class="w-[500px] bg-green-400/15 p-5 mr-15 border rounded-md border-green-400/15">
       <h3 class="text-[20px] font-bold mb-7">Upcoming Events</h3>
 
-      <div *ngFor="let event of upcomingEvents" class="flex py-3">
-        <h4 class="text-[16px]">
-          <span class="font-bold">{{ event.title }}:</span>
-          {{ event.date | date:'longDate' }}
-        </h4>
+      <div *ngFor="let event of upcomingEvents" class="py-3 border-b border-slate-300 last:border-b-0">
+        <div class="flex">
+          <h4 class="text-[16px]">
+            <span class="font-bold">{{ event.title }}:</span>
+            {{ event.date | date:'longDate' }}
+          </h4>
+        </div>
       </div>
 
       <div *ngIf="upcomingEvents.length === 0">

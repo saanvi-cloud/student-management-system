@@ -25,6 +25,7 @@ export class LoginComponent {
     next: (res: any) => {
       console.log(res);
       localStorage.setItem('token', res.token);
+      console.log("Saved token:", localStorage.getItem('token'));
       localStorage.setItem('logId', res.logId);
       this.router.navigate(['/dashboard']);
     },

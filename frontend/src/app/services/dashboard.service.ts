@@ -13,4 +13,7 @@ export class DashboardService {
   getDashboardData(): Observable<DashboardResponse> {
     return this.http.get<DashboardResponse>(this.API);
   }
+  getRecentActivity() {
+    return this.http.get<any[]>('http://localhost:3000/api/activity');
+  }
 }

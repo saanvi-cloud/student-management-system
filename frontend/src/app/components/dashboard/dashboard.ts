@@ -18,6 +18,7 @@ export class Dashboard implements OnInit {
   tops: TopStudent[] = [];
   stats!: DashboardStats;
   upcomingEvents: SchoolEvent[] = [];
+  recentActivities: any[] = [];
 
   constructor(private dashboardService: DashboardService, private eventService: EventService) {}
 
@@ -54,6 +55,18 @@ export class Dashboard implements OnInit {
       }
     });
 
+    this.dashboardService.getRecentActivity().subscribe({
+      next: (res) => {
+        this.recentActivities = res;
+      }
+    });
+
+  }
+  getIcon(type: string) {
+    if (type === 'ADD_STUDENT') return 'fa-solid fa-user-plus text-[16px] ml-2 mt-1 text-green-400';
+    if (type === 'UPDATE_STUDENT') return 'fa-solid fa-pen-to-square text-[16px] ml-2 mt-1 text-orange-400';
+    if (type === 'DELETE_STUDENT') return 'fa-solid fa-user-minus text-[16px] ml-2 mt-1 text-red-400';
+    return 'fa-solid fa-circle-info text-[16px] ml-2 mt-1 text-blue-400';
   }
 
 }

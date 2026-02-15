@@ -27,6 +27,8 @@ export class Students implements OnInit {
     private router: Router) {}
 
   ngOnInit(): void {
+    this.studentDetailsMap = {};
+    this.expandedRows.clear();
     this.loadStudents();
   }
 
@@ -47,6 +49,7 @@ export class Students implements OnInit {
       this.studentService
         .getStudentDetails(studentId)
         .subscribe(details => {
+          console.log("DETAILS:", details);
           this.studentDetailsMap[studentId] = details;
         });
     }

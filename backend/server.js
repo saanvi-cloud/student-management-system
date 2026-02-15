@@ -169,6 +169,25 @@ app.get('/', authenticateToken, (req, res) => {
     }
   );
 });
+app.get('/api/activity', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT * 
+       FROM activity
+       WHERE user_id = ?
+       ORDER BY created_at DESC
+       LIMIT 5`,
+      [userId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error("ACTIVITY ERROR:", err);
+    res.status(500).json({ error: 'Failed to fetch activity logs' });
+  }
+});
 
 //Students
 // app.get('/api/students', authenticateToken, async (req, res) => {
@@ -244,11 +263,14 @@ app.get('/api/students/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Not found' });
     }
 
-    const [courses] = await db.query(
-      `SELECT c.course_id, c.course_name
-       FROM enrollments e
-       JOIN courses c ON e.course_id = c.course_id
-       WHERE e.student_id = ? AND e.user_id = ?`,
+    const [courses] = await db.query(`
+      SELECT c.course_id, c.course_name
+      FROM enrollments e
+      JOIN courses c 
+        ON e.course_id = c.course_id
+        AND e.user_id = c.user_id
+      WHERE e.student_id = ? 
+        AND e.user_id = ?`,
       [id, userId]
     );
 
@@ -294,7 +316,7 @@ app.post('/api/students', authenticateToken, async (req, res) => {
         date_of_birth,
         address,
         status,
-        userId
+        userId,
       ]
     );
 
@@ -319,6 +341,15 @@ app.post('/api/students', authenticateToken, async (req, res) => {
         [studentId, courseId, userId]
       );
     }
+    await conn.query(
+      `INSERT INTO activity (user_id, type, message)
+      VALUES (?, ?, ?)`,
+      [
+        userId,
+        'ADD_STUDENT',
+        `New student added: ${first_name} ${last_name}`
+      ]
+    );    
 
     await conn.commit();
     res.status(201).json({ message: 'Student created successfully' });
@@ -367,7 +398,7 @@ app.put('/api/students/:id', authenticateToken, async (req, res) => {
         address,
         status,
         studentId,
-        userId
+        userId, 
       ]
     );
 
@@ -388,6 +419,15 @@ app.put('/api/students/:id', authenticateToken, async (req, res) => {
         );
       }
     }
+    await conn.query(
+      `INSERT INTO activity (user_id, type, message)
+      VALUES (?, ?, ?)`,
+      [
+        userId,
+        'UPDATE_STUDENT',
+        `Student record updated: ${first_name} ${last_name}`
+      ]
+    );
 
     await conn.commit();
     res.json({ message: 'Student updated successfully' });
@@ -439,8 +479,17 @@ app.delete('/api/students/:id', authenticateToken, async (req, res) => {
     // Delete student
     const [result] = await conn.query(
       'DELETE FROM students WHERE student_id = ? AND user_id=?',
-      [studentId, userId]
+      [studentId, userId,]
     );
+    await conn.query(
+      `INSERT INTO activity (user_id, type, message)
+      VALUES (?, ?, ?)`,
+      [
+        userId,
+        'DELETE_STUDENT',
+        `Student deleted: ${studentId}`
+      ]
+    );    
 
     if (result.affectedRows === 0) {
       throw new Error('Student not found');
