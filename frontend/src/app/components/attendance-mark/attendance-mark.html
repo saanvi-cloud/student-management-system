@@ -1,51 +1,79 @@
 <div class="p-10">
-
-  <h1 class="text-3xl font-bold mb-6">Mark Attendance</h1>
-
-  <!-- Course Selection -->
-  <div class="mb-6">
-    <label class="block font-semibold mb-2">Select Course</label>
-    <select
-      [(ngModel)]="selectedCourse"
-      (change)="loadStudents()"
-      class="p-3 border rounded-md w-64"
+  <div class="w-full flex">
+    <div class="text-blue-700/80 font-bold text-3xl flex">
+      <i class="fa-solid fa-calendar-day mr-2"></i>
+      <h1>Mark Attendance</h1>
+    </div>
+    <button
+      class="text-white bg-blue-600 ml-auto border border-slate-300 rounded-md p-3 cursor-pointer"
     >
-      <option value="">Select a course</option>
-      <option *ngFor="let c of courses" [value]="c.course_id">
-        {{ c.course_name }}
-      </option>
-    </select>
+      <i class="fa-solid fa-circle-check"></i>
+      Mark today's attendance
+    </button>
   </div>
+  <hr class="w-full text-slate-300 shadow-md border-[0.5px] my-6">
 
-  <!-- Date Selection -->
-  <div class="mb-6">
-    <label class="block font-semibold mb-2">Select Date</label>
-    <input
-      type="date"
-      [(ngModel)]="selectedDate"
-      (change)="loadStudents()"
-      class="p-3 border rounded-md w-64 text-lg"
-    />
-  </div>
+  <form class="w-full">
+
+    <div class="w-full gap-8 mb-7 flex justify-between">
+      <div class="w-full">
+        <h4 class="p-2">Select Course</h4>
+        <select
+          name="course"
+          [(ngModel)]="selectedCourse"
+          (change)="loadStudents()"
+          class="p-3 border rounded-md w-64"
+        >
+          <option value="">Select a course</option>
+          <option *ngFor="let c of courses" [value]="c.course_id">
+            {{ c.course_name }}
+          </option>
+        </select>
+      </div>
+      <div class="w-full pt-10 pl-50">
+        <p class="text-[20px] font-semibold">
+          {{ selectedDate | date:'longDate' }}
+        </p>
+      </div>
+
+      <!-- <div class="w-full">
+        <h4 class="p-2">Select Date</h4>
+        <input
+          type="date"
+          name="date"
+          readonly
+          [(ngModel)]="selectedDate"
+          class="p-3 border rounded-md w-64 text-lg"
+        />
+      </div> -->
+    </div>
+  </form>
 
   <!-- Student Table -->
-  <table *ngIf="students.length > 0" class="w-full mt-6">
+  <!-- <table *ngIf="students.length > 0" class="w-full mt-6">
     <thead>
       <tr>
         <th>Student</th>
         <th>Attendance</th>
       </tr>
+    </thead> -->
+    <table *ngIf="students.length > 0" class="w-full my-10">
+    <thead class="table-header">
+      <th class="table-cell">Student ID</th>
+      <th class="table-cell">Student Name</th>
+      <th class="table-cell">Attendance</th>
     </thead>
 
     <tbody>
-      <tr *ngFor="let s of students">
-        <td>{{ s.student_name }}</td>
+      <tr *ngFor="let s of students" class="w-full my-10 border-b border-slate-300">
+        <td class="table-cell">{{ s.student_id }}</td>
+        <td class="table-cell">{{ s.student_name }}</td>
 
-        <td class="flex gap-3">
+        <td class="flex gap-3 table-cell">
           <button
-            class="px-3 py-1 rounded"
+            class="text-20px px-5 py-3 rounded"
             [ngClass]="{
-              'bg-green-500 text-white': s.status === 'Present',
+              'bg-green-500 opacity-90 text-white': s.status === 'Present',
               'bg-gray-200': s.status !== 'Present'
             }"
             (click)="mark(s, 'Present')"
@@ -54,9 +82,9 @@
           </button>
 
           <button
-            class="px-3 py-1 rounded"
+            class="text-20px px-5 py-3 rounded"
             [ngClass]="{
-              'bg-red-500 text-white': s.status === 'Absent',
+              'bg-red-500 opacity-90 text-white': s.status === 'Absent',
               'bg-gray-200': s.status !== 'Absent'
             }"
             (click)="mark(s, 'Absent')"
@@ -69,7 +97,7 @@
   </table>
 
   <!-- Save Button -->
-  <div *ngIf="students.length > 0" class="mt-6">
+  <div *ngIf="students.length > 0" class="mt-6 flex justify-center">
     <button
       class="bg-blue-600 text-white px-6 py-3 rounded-md"
       (click)="saveAttendance()"

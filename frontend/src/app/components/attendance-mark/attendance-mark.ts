@@ -22,12 +22,18 @@ export class AttendanceMark implements OnInit {
 
   ngOnInit(): void {
     this.loadCourses();
+    this.selectedDate = new Date().toISOString().split('T')[0];
+    this.loadCourses();
   }
 
   loadCourses() {
     // Create a new service method for this
     this.attendanceService.getCourses().subscribe(data => {
       this.courses = data;
+      if (this.courses.length > 0) {
+        this.selectedCourse = this.courses[0].course_id;
+        this.loadStudents(); // auto-load students too
+      }
     });
   }
 
