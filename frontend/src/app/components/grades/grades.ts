@@ -21,6 +21,14 @@ export class Grades implements OnInit {
   modifiedGrades: Grade[] = [];
   originalGrades: Grade [] = [];
   isUpdating = false;
+  gradeDistribution = {
+  A: 0,
+  B: 0,
+  C: 0,
+  D: 0,
+  E: 0,
+  F: 0
+};
 
   grades$!: Observable<Grade[] | null>;
 
@@ -34,6 +42,7 @@ export class Grades implements OnInit {
         this.originalGrades = JSON.parse(JSON.stringify(data));
         this.extractCourses(data);
         this.applyFilters();
+        this.calculateDistribution();
       }
     });
 
@@ -61,6 +70,7 @@ export class Grades implements OnInit {
 
       return courseMatch && gradeMatch;
     });
+    this.calculateDistribution();
   }
   extractCourses(data: Grade[]) {
     const uniqueCourses = new Set(data.map(g => g.course_name));
@@ -229,5 +239,23 @@ export class Grades implements OnInit {
   }
   trackByGrade(index: number, grade: Grade): string {
     return grade.student_id + '-' + grade.course_id;
+  }
+
+  calculateDistribution() {
+    // Reset counts
+    this.gradeDistribution = {
+      A: 0,
+      B: 0,
+      C: 0,
+      D: 0,
+      E: 0,
+      F: 0
+    };
+
+    this.filteredGrades.forEach(g => {
+      if (g.grade_letter && this.gradeDistribution[g.grade_letter as keyof typeof this.gradeDistribution] !== undefined) {
+        this.gradeDistribution[g.grade_letter as keyof typeof this.gradeDistribution]++;
+      }
+    });
   }
 }

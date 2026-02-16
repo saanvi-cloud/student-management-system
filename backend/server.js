@@ -1007,6 +1007,22 @@ app.get('/api/attendance/students', authenticateToken, async (req, res) => {
 
   res.json(rows);
 });
+app.get('/api/attendance-summary', authenticateToken, async (req, res) => {
+  const userId = req.user.id;
+
+  const [rows] = await db.query(
+    `SELECT 
+       a.student_id,
+       SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) AS present_count,
+       COUNT(*) AS total_classes
+     FROM attendance a
+     WHERE a.user_id = ?
+     GROUP BY a.student_id`,
+    [userId]
+  );
+
+  res.json(rows);
+});
 
 //Events
 app.get('/api/events', authenticateToken, async (req, res) => {

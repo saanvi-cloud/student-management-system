@@ -21,6 +21,9 @@ export class AttendanceComponent implements OnInit {
   filteredAttendance: Attendance[] = [];
   attendance$!: Observable<Attendance[]>;
   attendance: (Attendance & { status?: string })[] = [];
+  excellentCount = 0;
+  goodCount = 0;
+  needsAttentionCount = 0;
 
 
   constructor(private attendanceService: AttendanceService, private router: Router) {}
@@ -37,6 +40,7 @@ export class AttendanceComponent implements OnInit {
     this.filteredAttendance = this.allAttendance.filter(a =>
       !this.selectedCourse || a.course_name === this.selectedCourse
     );
+    this.calculateAttendanceDistribution();
   }
 
   extractCourses(data: Attendance[]) {
@@ -84,42 +88,26 @@ export class AttendanceComponent implements OnInit {
   navigateToAttendanceMarking(): void {
     this.router.navigate(['/attendance-mark']);
   }
+  calculateAttendanceDistribution() {
+
+    this.excellentCount = 0;
+    this.goodCount = 0;
+    this.needsAttentionCount = 0;
+
+    this.filteredAttendance.forEach(student => {
+
+      const rate = Number(student.attendance_rate);
+
+      if (rate >= 90) {
+        this.excellentCount++;
+      } else if (rate >= 75) {
+        this.goodCount++;
+      } else {
+        this.needsAttentionCount++;
+      }
+
+    });
+  }
 }
 
-// export class AttendanceComponent implements OnInit {
-
-//   // attendance: Attendance[] = [];
-
-
-//   ngOnInit(): void {
-//     this.attendanceService.getAttendance().subscribe(data => {
-//       this.allAttendance = data;
-//       this.extractCourses(data);
-//       this.applyFilters();
-//     });
-//   }
-//   applyFilters() {
-//     this.filteredAttendance = this.allAttendance.filter(a => {
-//       return !this.selectedCourse || a.course_name === this.selectedCourse;
-//     });
-//   }
-
-//   extractCourses(data: Attendance[]) {
-//     const uniqueCourses = new Set(data.map(a => a.course_name));
-//     this.courses = Array.from(uniqueCourses);
-//   }
-
-//   refreshAttendance(): void {
-//     this.attendance$ = this.attendanceService.getAttendance();
-//   }
-
-
-//   onCourseChange(event: Event): void {
-//     const selectElement = event.target as HTMLSelectElement;
-//     this.selectedCourse = selectElement.value;
-//     this.loadAttendance();
-//   }
-
-  
-// }
 
