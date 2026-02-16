@@ -34,4 +34,10 @@ export class GradeService {
       `http://localhost:3000/api/grades/${studentId}/${courseId}`
     );
   }
+  bulkUpdate(data: any) {
+    return this.http.put(
+      `${this.apiUrl}/bulk`,
+      data
+    );
+  }
 }

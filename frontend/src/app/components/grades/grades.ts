@@ -18,7 +18,9 @@ export class Grades implements OnInit {
   selectedCourse: string = '';
   selectedGradeRange: string = '';
   allGrades: Grade[] = [];
-
+  modifiedGrades: Grade[] = [];
+  originalGrades: Grade [] = [];
+  isUpdating = false;
 
   grades$!: Observable<Grade[] | null>;
 
@@ -29,6 +31,7 @@ export class Grades implements OnInit {
       console.log("GRADES RECEIVED:", data);
       if (data) {
         this.allGrades = data;
+        this.originalGrades = JSON.parse(JSON.stringify(data));
         this.extractCourses(data);
         this.applyFilters();
       }
@@ -37,9 +40,12 @@ export class Grades implements OnInit {
     this.gradeService.loadGrades();
   }
 
-  loadGrades(): void {
-    this.gradeService.loadGrades();
-  }
+  // loadGrades() {
+  //   this.gradeService.getGrades().subscribe(data => {
+  //     this.grades = data;
+  //     this.originalGrades = JSON.parse(JSON.stringify(data));
+  //   });
+  // }
   filteredGrades: Grade[] = [];
 
   applyFilters() {
@@ -117,5 +123,111 @@ export class Grades implements OnInit {
           }
         });
     }
+  }
+
+  markAsModified(grade: Grade) {
+    const original = this.originalGrades.find(
+      g => g.student_id === grade.student_id &&
+          g.course_id === grade.course_id
+    );
+
+    if (!original) return;
+
+    const alreadyModified = this.modifiedGrades.find(
+      g => g.student_id === grade.student_id &&
+          g.course_id === grade.course_id
+    );
+
+    // If value changed → add to modified
+    if (original.grade_numeric !== grade.grade_numeric) {
+
+      if (!alreadyModified) {
+        this.modifiedGrades.push({ ...grade });
+      }
+
+    } else {
+      // If user reverted back → remove from modified
+      this.modifiedGrades = this.modifiedGrades.filter(
+        g => !(g.student_id === grade.student_id &&
+              g.course_id === grade.course_id)
+      );
+    }
+  }
+
+  bulkUpdate() {
+    if (this.modifiedGrades.length === 0) {
+      alert("No changes to update");
+      return;
+    }
+
+    this.isUpdating = true;
+
+    this.gradeService.bulkUpdate({
+      grades: this.modifiedGrades,
+      courseId: this.selectedCourse
+    }).subscribe({
+      next: () => {
+
+        // update baseline AFTER backend success
+        this.originalGrades = JSON.parse(JSON.stringify(this.allGrades));
+        this.gradeService.loadGrades();
+        this.modifiedGrades = [];
+        this.isUpdating = false;
+
+        alert("Bulk update successful");
+      },
+      error: err => {
+        this.isUpdating = false;
+        console.error("Bulk update failed:", err);
+      }
+    });
+  }
+
+  isModified(grade: Grade): boolean {
+    return this.modifiedGrades.some(
+      g => g.student_id === grade.student_id &&
+          g.course_id === grade.course_id
+    );
+  }
+  // onGradeChange(grade: Grade) {
+  //   // Update letter instantly in UI
+  //   grade.grade_letter = this.calculateLetter(grade.grade_numeric);
+
+  //   this.markAsModified(grade);
+  // }
+  // onGradeChange(grade: Grade) {
+  //   const numeric = Number(grade.grade_numeric);
+
+  //   grade.grade_letter = this.calculateLetter(numeric);
+  //   grade.performance = this.calculatePerformance(grade.grade_letter);
+
+  //   this.markAsModified(grade);
+  // }
+
+  // calculateLetter(score: number): string {
+  //   if (score >= 90) return 'A';
+  //   if (score >= 80) return 'B';
+  //   if (score >= 70) return 'C';
+  //   if (score >= 60) return 'D';
+  //   if (score >= 50) return 'E';
+  //   return 'F';
+  // }
+  // calculatePerformance(letter: string): string {
+  //   switch (letter) {
+  //     case 'A': return 'Excellent';
+  //     case 'B': return 'Very Good';
+  //     case 'C': return 'Good';
+  //     case 'D': return 'Average';
+  //     case 'E': return 'Lower Average';
+  //     case 'F': return 'Fail';
+  //     default: return '';
+  //   }
+  // }
+  onGradeChange(grade: Grade) {
+    grade.grade_numeric = Number(grade.grade_numeric);
+    this.markAsModified(grade);
+  }
+  trackByGrade(index: number, grade: Grade): string {
+    return grade.student_id + '-' + grade.course_id;
   }
 }

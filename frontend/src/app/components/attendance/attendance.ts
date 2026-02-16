@@ -4,6 +4,7 @@ import { AttendanceService } from '../../services/attendance.service';
 import { Attendance } from '../../models/attendance.model';
 import { Observable } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-attendance',
@@ -22,7 +23,7 @@ export class AttendanceComponent implements OnInit {
   attendance: (Attendance & { status?: string })[] = [];
 
 
-  constructor(private attendanceService: AttendanceService) {}
+  constructor(private attendanceService: AttendanceService, private router: Router) {}
 
   ngOnInit(): void {
     this.attendanceService.getAttendance().subscribe(data => {
@@ -79,6 +80,9 @@ export class AttendanceComponent implements OnInit {
         status: 'Present' // default value
       }));
     });
+  }
+  navigateToAttendanceMarking(): void {
+    this.router.navigate(['/attendance-mark']);
   }
 }
 

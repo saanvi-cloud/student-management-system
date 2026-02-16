@@ -108,8 +108,9 @@ async function seedDemoData(conn, userId) {
     ('EVT001','Math Exam','Final Math Exam','2026-02-20','exam',?),
     ('EVT002','Science Fair','Inter-school Competition','2026-02-15','competition',?),
     ('EVT003','Annual Day','School Celebration','2026-02-25','celebration',?),
-    ('EVT004','Sports Day','Sports Competition','2026-02-15','competition',?)`,
-    [userId, userId, userId, userId]
+    ('EVT004','Sports Day','Sports Competition','2026-02-15','competition',?), 
+    ('EVT005','Science Olympiad','Olympiad','2026-02-14','competition',?)`,
+    [userId, userId, userId, userId, userId]
   );
 }
 

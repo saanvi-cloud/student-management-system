@@ -519,7 +519,8 @@ app.get('/api/courses', authenticateToken, async (req, res) => {
     COUNT(e.student_id) AS students_enrolled
   FROM courses c
   LEFT JOIN enrollments e 
-    ON c.course_id = e.course_id
+    ON c.course_id = e.course_id 
+    AND c.user_id = e.user_id
     WHERE c.user_id=?
   GROUP BY 
     c.course_id,
@@ -757,6 +758,76 @@ app.delete('/api/grades/:student_id/:course_id', authenticateToken, async (req, 
   } catch (err) {
     console.log('DELETE ERROR:', err);
     res.status(500).json(err);
+  }
+});
+app.put('/api/grades/bulk', authenticateToken, async (req, res) => {
+
+  const userId = req.user.id;
+  const { grades, courseId } = req.body;
+
+  const conn = await db.getConnection();
+  await conn.beginTransaction();
+
+  function calculateLetter(score) {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    if (score >= 50) return 'E';
+    return 'F';
+  }
+
+  function calculatePerformance(letter) {
+    switch (letter) {
+      case 'A': return 'Excellent';
+      case 'B': return 'Very Good';
+      case 'C': return 'Good';
+      case 'D': return 'Average';
+      case 'E': return 'Lower Average';
+      case 'F': return 'Fail';
+      default: return '';
+    }
+  }
+
+  try {
+
+    const queries = grades.map(grade => {
+      const letter = calculateLetter(grade.grade_numeric);
+      const performance = calculatePerformance(letter);
+
+      return conn.query(
+        `UPDATE grades 
+        SET grade_numeric = ?, grade_letter = ?, performance = ?
+        WHERE student_id = ? AND course_id = ? AND user_id = ?`,
+        [
+          grade.grade_numeric,
+          letter,
+          performance,
+          grade.student_id,
+          grade.course_id,
+          userId
+        ]
+      );
+    });
+
+    await Promise.all(queries);
+
+
+    await conn.query(
+      `INSERT INTO activity (user_id, type, message)
+       VALUES (?, ?, ?)`,
+      [userId, 'BULK_GRADE_UPDATE', `Grades updated for course ${courseId}`]
+    );
+
+    await conn.commit();
+    res.json({ message: 'Grades updated successfully' });
+
+  } catch (err) {
+    console.error(err); // ← add this for debugging
+    await conn.rollback();
+    res.status(500).json({ error: 'Bulk update failed' });
+  } finally {
+    conn.release();
   }
 });
 
