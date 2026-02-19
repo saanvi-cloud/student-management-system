@@ -14,7 +14,7 @@ async function clearUserData(conn, userId) {
 async function initializeUserDefaults(conn, userId) {
   await conn.query(
     `INSERT INTO academic (semester, year, passing_grade, attendance_required, user_id)
-     VALUES (1, '2025-2026', 40, 75, ?)`,
+     VALUES (1, '2026-2027', 40, 75, ?)`,
     [userId]
   );
 

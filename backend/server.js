@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
@@ -5,6 +6,7 @@ const db = require('./db');
 const app = express();
 app.use(cors());
 app.use(express.json());
+const PORT = process.env.PORT;
 
 const {
   clearUserData,
@@ -25,7 +27,7 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ message: 'Access token missing' });
   }
 
-  jwt.verify(token, 'secretKey', (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
@@ -58,7 +60,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     const token = jwt.sign(
       { id: user.id },
-      'secretKey',
+      process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
@@ -129,8 +131,15 @@ app.get('/api/dashboard', authenticateToken, async (req, res) => {
       COALESCE(ROUND(AVG(g.grade_numeric), 2), 0) AS grade,
       s.student_status AS status
     FROM students s
-    LEFT JOIN grades g ON s.student_id = g.student_id
-    LEFT JOIN courses c ON g.course_id = c.course_id
+    LEFT JOIN enrollments e
+      ON s.student_id = e.student_id
+      AND s.user_id = e.user_id
+    LEFT JOIN grades g 
+      ON g.student_id = e.student_id 
+      AND g.course_id = e.course_id
+      AND g.user_id = e.user_id
+    LEFT JOIN courses c 
+      ON g.course_id = c.course_id
     WHERE s.user_id = ?
     GROUP BY s.student_id
     ORDER BY grade DESC
@@ -190,31 +199,6 @@ app.get('/api/activity', authenticateToken, async (req, res) => {
 });
 
 //Students
-// app.get('/api/students', authenticateToken, async (req, res) => {
-//   const userId = req.user.id;
-//   const sql = `
-//     SELECT 
-//       s.student_id,
-//       CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-//       s.student_email,
-//       s.student_status,
-//       GROUP_CONCAT(DISTINCT c.course_name SEPARATOR ', ') AS courses,
-//       COALESCE(ROUND(AVG(g.grade_numeric), 2), 0) AS grade_numeric
-//     FROM students s
-//     LEFT JOIN enrollments e ON s.student_id = e.student_id
-//     LEFT JOIN courses c ON e.course_id = c.course_id
-//     LEFT JOIN grades g ON s.student_id = g.student_id
-//     WHERE s.user_id = ?
-//     GROUP BY s.student_id;
-//   `;
-
-//   try {
-//     const [rows] = await db.query(sql, [userId]);
-//     res.json(rows);
-//   } catch (err) {
-//     res.status(500).json({ error: 'Database query failed' });
-//   }
-// });
 app.get('/api/students', authenticateToken, async (req, res) => {
   const userId = req.user.id;
 
@@ -656,32 +640,6 @@ app.post('/api/courses', authenticateToken, async (req, res) => {
 });
 
 //Grades
-// app.get('/api/grades', authenticateToken, async (req, res) => {
-//   const userId = req.user.id;
-//   const sql = `
-//   SELECT 
-//     g.student_id,
-//     CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-//     c.course_name,
-//     c.instructor,
-//     g.course_id,
-//     g.grade_numeric,
-//     g.grade_letter,
-//     g.performance
-//   FROM grades g
-//   LEFT JOIN students s ON g.student_id = s.student_id
-//   LEFT JOIN courses c ON g.course_id = c.course_id
-//   WHERE g.user_id=?;
-//   `;
-//   try {
-//     const [grades] = await db.query(sql, [userId]);
-//     res.json(grades);
-//   }
-//   catch(err) {
-//     console.log('GRADES ERROR: ',err);
-//     res.status(500).json(err);
-//   }
-// });
 app.get('/api/grades', authenticateToken, async (req, res) => {
   const userId = req.user.id;
 
@@ -832,43 +790,6 @@ app.put('/api/grades/bulk', authenticateToken, async (req, res) => {
 });
 
 //Attendance
-// app.get('/api/attendance', authenticateToken, async (req, res) => {
-//   const { course } = req.query;
-//   const userId = req.user.id;
-
-//   let sql = `
-//     SELECT 
-//       a.student_id, 
-//       CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-//       c.course_name, 
-//       a.attendance_rate, 
-//       a.total_classes, 
-//       a.present, 
-//       a.absent, 
-//       a.attendance_status
-//     FROM attendance a
-//     LEFT JOIN students s 
-//       ON s.student_id = a.student_id
-//     LEFT JOIN courses c 
-//       ON c.course_id = a.course_id
-//     WHERE a.user_id = ?
-//   `;
-
-//   let values = [userId];
-
-//   if (course && course !== 'Select a course') {
-//     sql += ` AND c.course_name = ?`;
-//     values.push(course);
-//   }
-
-//   try {
-//     const [attendance] = await db.query(sql, values);
-//     res.json(attendance);
-//   } catch (err) {
-//     console.log('ATTENDANCE ERROR: ', err);
-//     res.status(500).json(err);
-//   }
-// });
 app.get('/api/attendance', authenticateToken, async (req, res) => {
   const userId = req.user.id;
 
@@ -988,11 +909,11 @@ app.get('/api/attendance/marking-list', authenticateToken, async (req, res) => {
   const [rows] = await db.query(sql, [userId]);
   res.json(rows);
 });
-app.get('/api/courses', authenticateToken, async (req, res) => {
-  const userId = req.user.id;
-  const [rows] = await db.query("SELECT course_id, course_name FROM courses WHERE user_id=?", [userId]);
-  res.json(rows);
-});
+// app.get('/api/courses', authenticateToken, async (req, res) => {
+//   const userId = req.user.id;
+//   const [rows] = await db.query("SELECT course_id, course_name FROM courses WHERE user_id=?", [userId]);
+//   res.json(rows);
+// });
 app.get('/api/attendance/students', authenticateToken, async (req, res) => {
   const { course_id } = req.query;
   const userId = req.user.id;
@@ -1063,7 +984,7 @@ app.get('/api/settings', authenticateToken, async (req, res) => {
       [userId]
     );
 
-    // 🔥 If missing → initialize
+    // If missing → initialize
     if (!institution.length || !academic.length || !notifications.length) {
 
       await initializeUserDefaults(db, userId);
@@ -1099,7 +1020,6 @@ app.get('/api/settings', authenticateToken, async (req, res) => {
     res.status(500).json(err);
   }
 });
-
 app.put('/api/settings', authenticateToken, async (req, res) => {
   const { institution, academic, notifications } = req.body;
   const userId = req.user.id;
@@ -1131,7 +1051,6 @@ app.put('/api/settings', authenticateToken, async (req, res) => {
     res.status(500).json(err);
   }
 });
-
 async function generateStudentId(conn, userId) {
   const academicYear = '2021';
 
@@ -1173,4 +1092,4 @@ app.post('/api/reset-demo', authenticateToken, async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

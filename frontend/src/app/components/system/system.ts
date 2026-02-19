@@ -15,24 +15,38 @@ export class SettingsComponent implements OnInit {
 
   settings$!: Observable<Settings>;
   formData!: Settings;
+  years: string[] = [];
 
   constructor(private settingsService: SettingsService) {}
 
   ngOnInit(): void {
-    // Trigger API load
+    const currentYear = new Date().getFullYear();
+
+    this.years = [];
+    for (let i = 0; i < 5; i++) {
+      const start = currentYear - i;
+      const end = currentYear - i + 1;
+      this.years.push(`${start}-${end}`);
+    }
+
+    // trigger load
     this.settingsService.loadSettings();
 
-    // Ignore initial null emission
+    // subscribe pipeline
     this.settings$ = this.settingsService.settings$.pipe(
       filter((settings): settings is Settings => settings !== null),
       map(settings => {
-        // deep copy to avoid mutating store
         this.formData = structuredClone(settings);
+
+        // safe default
+        if (!this.formData.academic.year) {
+          this.formData.academic.year = this.years[0];
+        }
+
         return settings;
       })
     );
   }
-
   saveSettings(): void {
     this.settingsService.updateSettings(this.formData).subscribe({
       next: () => alert('Settings saved successfully'),

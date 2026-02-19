@@ -73,13 +73,11 @@
 
         <div class="w-[430px]">
           <label>Academic Year</label>
-          <select
-            [(ngModel)]="formData.academic.year"
-            class="w-full h-[40px] p-2 border rounded-md">
-            <option>2021-2022</option>
-            <option>2022-2023</option>
-            <option>2023-2024</option>
-            <option>2024-2025</option>
+          <select [(ngModel)]="formData.academic.year"
+                  class="w-full h-[40px] p-2 border rounded-md">
+            <option *ngFor="let y of years" [value]="y">
+              {{ y }}
+            </option>
           </select>
         </div>
       </div>

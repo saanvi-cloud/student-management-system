@@ -52,13 +52,17 @@ export class EventsComponent {
   }
 
   filterByMonth() {
-    this.filteredEvents = this.allEvents.filter(e => {
-      const eventDate = new Date(e.date);
-      return (
-        eventDate.getMonth() === this.viewDate.getMonth() &&
-        eventDate.getFullYear() === this.viewDate.getFullYear()
+    this.filteredEvents = this.allEvents
+      .filter(e => {
+        const eventDate = new Date(e.date);
+        return (
+          eventDate.getMonth() === this.viewDate.getMonth() &&
+          eventDate.getFullYear() === this.viewDate.getFullYear()
+        );
+      })
+      .sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
       );
-    });
   }
 
   getEventColor(type: string) {
