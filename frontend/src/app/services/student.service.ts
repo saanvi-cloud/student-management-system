@@ -4,7 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class StudentService {
-  private API = 'http://localhost:3000/api';
+  private API = 'https://student-management-system-apvn.onrender.com/api';
 
   constructor(private http: HttpClient) {}
 

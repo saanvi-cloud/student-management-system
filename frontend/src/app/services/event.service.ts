@@ -6,7 +6,7 @@ import { SchoolEvent } from '../models/event.model';
 @Injectable({ providedIn: 'root' })
 export class EventService {
 
-  private API = 'http://localhost:3000/api/events';
+  private API = 'https://student-management-system-apvn.onrender.com/api/events';
 
   constructor(private http: HttpClient) {}
 

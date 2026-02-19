@@ -6,7 +6,7 @@ import { Grade } from '../models/grade.model';
 @Injectable({ providedIn: 'root' })
 export class GradeService {
 
-  private apiUrl = 'http://localhost:3000/api/grades';
+  private apiUrl = 'https://student-management-system-apvn.onrender.com/api/grades';
 
   private gradesSubject = new BehaviorSubject<Grade[] | null>(null);
   grades$ = this.gradesSubject.asObservable();
@@ -21,7 +21,7 @@ export class GradeService {
   }
   updateGrade(grade: Grade) {
     return this.http.put(
-      `http://localhost:3000/api/grades/${grade.student_id}/${grade.course_id}`,
+      `https://student-management-system-apvn.onrender.com/api/grades/${grade.student_id}/${grade.course_id}`,
       {
         grade_numeric: grade.grade_numeric,
         grade_letter: grade.grade_letter,
@@ -31,7 +31,7 @@ export class GradeService {
   }
   deleteGrade(studentId: string, courseId: string) {
     return this.http.delete(
-      `http://localhost:3000/api/grades/${studentId}/${courseId}`
+      `https://student-management-system-apvn.onrender.com/api/grades/${studentId}/${courseId}`
     );
   }
   bulkUpdate(data: any) {

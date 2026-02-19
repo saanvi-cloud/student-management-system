@@ -6,7 +6,7 @@ import { Attendance } from '../models/attendance.model';
 @Injectable({ providedIn: 'root' })
 export class AttendanceService {
 
-  private apiUrl = 'http://localhost:3000/api/attendance';
+  private apiUrl = 'https://student-management-system-apvn.onrender.com/api/attendance';
 
   constructor(private http: HttpClient) {}
 
@@ -15,18 +15,18 @@ export class AttendanceService {
     return this.http.get<Attendance[]>(url);
   }
   markAttendance(data: any) {
-    return this.http.post('http://localhost:3000/api/attendance/mark', data);
+    return this.http.post('https://student-management-system-apvn.onrender.com/api/attendance/mark', data);
   }
   getMarkingList(): Observable<any[]> {
-    return this.http.get<any[]>('http://localhost:3000/api/attendance/marking-list');
+    return this.http.get<any[]>('https://student-management-system-apvn.onrender.com/api/attendance/marking-list');
   }
   getCourses() {
-    return this.http.get<any[]>('http://localhost:3000/api/courses');
+    return this.http.get<any[]>('https://student-management-system-apvn.onrender.com/api/courses');
   }
 
   getStudentsForCourse(courseId: string) {
     return this.http.get<any[]>(
-      `http://localhost:3000/api/attendance/students?course_id=${courseId}`
+      `https://student-management-system-apvn.onrender.com/api/attendance/students?course_id=${courseId}`
     );
   }
 }

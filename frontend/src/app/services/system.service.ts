@@ -7,7 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
-  private apiUrl = 'http://localhost:3000/api/settings';
+  private apiUrl = 'https://student-management-system-apvn.onrender.com/api/settings';
 
   private settingsSubject = new BehaviorSubject<Settings | null>(null);
   settings$ = this.settingsSubject.asObservable();
@@ -28,7 +28,7 @@ export class SettingsService {
   }
 
   resetDemo() {
-    return this.http.post('http://localhost:3000/api/reset-demo', {});
+    return this.http.post('https://student-management-system-apvn.onrender.com/api/reset-demo', {});
   }
 }
 

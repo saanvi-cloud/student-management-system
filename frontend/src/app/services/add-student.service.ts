@@ -6,7 +6,7 @@ import { AddStudent } from '../models/add-student.model';
 @Injectable({ providedIn: 'root' })
 export class AddStudentService {
 
-  private apiUrl = 'http://localhost:3000/api/students';
+  private apiUrl = 'https://student-management-system-apvn.onrender.com/api/students';
 
   constructor(private http: HttpClient) {}
 

@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
 
-  private API = 'http://localhost:3000/api/dashboard';
+  private API = 'https://student-management-system-apvn.onrender.com/api/dashboard';
 
   constructor(private http: HttpClient) {}
 
@@ -14,6 +14,6 @@ export class DashboardService {
     return this.http.get<DashboardResponse>(this.API);
   }
   getRecentActivity() {
-    return this.http.get<any[]>('http://localhost:3000/api/activity');
+    return this.http.get<any[]>('https://student-management-system-apvn.onrender.com/api/activity');
   }
 }

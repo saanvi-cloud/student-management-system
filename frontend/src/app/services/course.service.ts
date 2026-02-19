@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class CourseService {
 
-  private apiUrl = 'http://localhost:3000/api/courses';
+  private apiUrl = 'https://student-management-system-apvn.onrender.com/api/courses';
 
   private coursesSubject = new BehaviorSubject<Course[] | null>(null);
   courses$ = this.coursesSubject.asObservable();
