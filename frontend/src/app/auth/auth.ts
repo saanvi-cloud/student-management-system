@@ -21,7 +21,7 @@ export class AuthService {
     const logId = localStorage.getItem('logId');
 
     if (logId) {
-      this.http.post('https://student-management-system-1-6csx.onrender.com/api/auth/logout', { logId })
+      this.http.post('https://student-management-system-apvn.onrender.com/api/auth/logout', { logId })
         .subscribe();
     }
 
