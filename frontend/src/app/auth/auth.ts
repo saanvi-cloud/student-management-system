@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private API = 'http://localhost:3000/api/auth';
+  private API = 'https://student-management-system-1-6csx.onrender.com/api/auth';
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -21,7 +21,7 @@ export class AuthService {
     const logId = localStorage.getItem('logId');
 
     if (logId) {
-      this.http.post('http://localhost:3000/api/auth/logout', { logId })
+      this.http.post('https://student-management-system-1-6csx.onrender.com/api/auth/logout', { logId })
         .subscribe();
     }
 
